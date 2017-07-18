@@ -1,0 +1,40 @@
+﻿<div ng-if="showSavedNews == null">
+	<h1>News</h1>
+</div>
+<div ng-if="showSavedNews">
+	<h1>Saved News</h1>
+</div>
+<div ng-if="showSavedNews == null" class="list-group">
+	<button ng-repeat="filter in user.newsFilters" type="button" class="list-group-item" ng-click="selectOne($index)" ng-class="{active: $index == selectedIdx}"><strong>{{ filter.name }}</strong></button>
+</div>
+<hr />
+<ul class="media-list">
+	<li class="media" ng-repeat="story in news">
+		<div class="media-left">
+			<a href="{{ story.link }}" target="_blank">
+				<img class="media-object" ng-src="{{ story.imageUrl }}">
+			</a>
+		</div>
+		<div class="media-body">
+			<h class="media-heading"><b>{{ story.title }}</b></h>
+			<p>{{ story.contentSnippet }}</p>
+			{{ story.source }} <span>{{ story.hours }}</span>
+			<div ng-if="showSavedNews == null" class="media-body">
+				<a href="javascript:void(0)" ng-click="saveStory($index)">Save</a> | <span><a href="javascript:void(0)" ng-click="shareStory($index)">Share</a></span>
+			</div>
+			<div ng-if="showSavedNews" class="media-body">
+				<a href="javascript:void(0)" ng-click="deleteSavedStory($index)">Delete</a> | <span><a href="javascript:void(0)" ng-click="shareStory($index)">Share</a></span>
+			</div>
+		</div>
+	</li>
+	<li class="media">
+		<div class="media-left">
+			<a href="http://developer.nytimes.com" target="_blank">
+				<img ng-src="poweredby_nytimes_30b.png">
+			</a>
+		</div>
+		<div class="media-body">
+			<h class="media-heading"><b>Data provided by The New York Times</b></h>
+		</div>
+	</li>
+</ul>

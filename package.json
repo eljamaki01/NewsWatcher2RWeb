@@ -1,0 +1,49 @@
+{
+  "name": "NewsWatcher",
+  "version": "0.0.1",
+  "description": "NewsWatcher",
+  "main": "server.js",
+  "author": {
+    "name": "BUSHMAN",
+    "email": ""
+  },
+  "scripts": {
+    "start": "node server.js",
+    "start-react": "react-scripts start",
+    "build-react": "react-scripts build",
+    "test-react": "react-scripts test --env=jsdom"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "aws-sdk": "^2.84.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "express-rate-limit": "^2.8.0",
+    "gulp-git": "^2.4.1",
+    "gulp-mocha": "^4.3.1",
+    "helmet": "^3.6.1",
+    "helmet-csp": "^2.4.0",
+    "joi": "^10.6.0",
+    "jwt-simple": "^0.5.1",
+    "kerberos": "0.0.23",
+    "mongodb": "^2.2.30",
+    "morgan": "^1.8.2",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-scripts": "^1.0.10",
+    "response-time": "^2.3.2",
+    "supertest": "^3.0.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-bump": "^2.7.0",
+    "gulp-git": "^2.4.1",
+    "gulp-mocha": "^4.3.1",
+    "mocha": "^3.4.2",
+    "react-scripts": "^1.0.10",
+    "run-sequence": "^2.0.0",
+    "selenium-webdriver": "^3.4.0",
+    "supertest": "^3.0.0"
+  }
+}

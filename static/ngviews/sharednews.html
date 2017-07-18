@@ -1,0 +1,62 @@
+﻿<h1>Shared News</h1>
+<ul class="media-list">
+	<li class="media" ng-repeat="sharedStory in news">
+		<div class="media-left">
+			<a href="{{ sharedStory.story.link }}" target="_blank">
+				<img class="media-object" ng-src="{{ sharedStory.story.imageUrl }}">
+			</a>
+		</div>
+		<div class="media-body">
+			<h class="media-heading"><b id="{{ sharedStory.story.storyID }}">{{ sharedStory.story.title }}</b></h>
+			<p>{{ sharedStory.story.contentSnippet }}</p>
+			{{ sharedStory.story.source }} <span>{{ sharedStory.story.hours }}</span>
+			<a href="javascript:void(0)" ng-click="openModal($index)">Comments</a>
+		</div>
+	</li>
+	<li class="media">
+		<div class="media-left">
+			<a href="http://developer.nytimes.com" target="_blank">
+				<img ng-src="poweredby_nytimes_30b.png">
+			</a>
+		</div>
+		<div class="media-body">
+			<h class="media-heading"><b>Data provided by The New York Times</b></h>
+		</div>
+	</li>
+</ul>
+
+<!-- Modal to show comments-->
+<div class="modal fade" id="mySharedModal" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header" style="padding:35px 50px;">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4><span class="glyphicon glyphicon-lock"></span> Add Comment</h4>
+			</div>
+			<div class="modal-body" style="padding:40px 50px;">
+				<form role="form">
+					<div class="form-group">
+						<label for="usrname"><span class="glyphicon glyphicon-user"></span> Comments</label>
+						<ul style="height: 10em; overflow: auto; overflow-x: hidden">
+							<li ng-repeat="comment in news[selectedStoryIdx].comments">
+								<div>
+									<p>'{{ comment.comment }}' - {{ comment.displayName }} </p>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div ng-show="showAddComment()">
+						<div class="form-group">
+							<label for="usrname"><span class="glyphicon glyphicon-user"></span> Comment</label>
+							<input id="txtComment" type="text" maxlength="250" class="form-control" placeholder="Enter your comment" ng-model="comment">
+						</div>
+						<button id="btnComment" type="submit" class="btn btn-success btn-block" data-dismiss="modal" ng-click="addStoryComment($index)"><span class="glyphicon glyphicon-off"></span> Add</button>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
