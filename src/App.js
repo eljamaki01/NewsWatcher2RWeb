@@ -41,11 +41,10 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    console.log("HERE");
     // Check for token in HTML5 client side local storage
     var retrievedObject = window.localStorage.getItem("userToken");
     if (retrievedObject) {
-      console.log(retrievedObject);//????????????????????????????
+      //console.log(retrievedObject);//????????????????????????????
       this.setState({ session: JSON.parse(retrievedObject) });
       //$scope.remeberMe = true;
       this.setState({ loggedIn: true });
@@ -55,13 +54,13 @@ class App extends React.Component {
       ////$location.path('/news').replace();
       <Redirect to="/#/news" />
     } else {
-      console.log("HERE2");
       //$scope.remeberMe = false;
       ////$location.path('/').replace();
       ///////////////////////////////////<Redirect to="/" /> // "/#/" ?????
-      <Redirect to="/#/news" />
+      // <Redirect to="/#/" />
       //this.props.history.push("/new/url")
       //window.location.replace(window.location.pathname + '#/news');
+      // <Redirect to="/#/news" />
     }
   }
 
@@ -129,10 +128,9 @@ class App extends React.Component {
 
   handleLogin = (payload) => {
     if (payload.type === "MSG_LOGIN_OK") {
-      console.log(payload.msg);
-      console.log(payload.data);
       this.setState({ loggedIn: true });
       this.setState({ session: payload.data });
+      <Redirect to="/#/news" />
     }
     this.setState({ currentMsg: payload.msg });
   }
@@ -161,12 +159,10 @@ class App extends React.Component {
           </Navbar>
           <hr />
           <Switch>
-            <Route path="/news" component={NewsView} />
+            <Route path="/news" render={props => <NewsView session={this.state.session} parentMsgCB={this.handleLogin} {...props} />} />
             <Route path="/savednews" component={News} />
             <Route path="/sharednews" component={SharedNews} />
             <Route path="/profile" component={Profile} />
-            {/* <Route path="/" component={LoginView} />
-            <Route path="/" render={props => <LoginView session={this.state.session} loginHandler={this.handleClick} {...props} />} /> */}
             <Route path="/" render={props => <LoginView parentMsgCB={this.handleLogin} {...props} />} />
           </Switch>
         </div>

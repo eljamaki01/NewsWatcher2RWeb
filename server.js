@@ -25,24 +25,24 @@ var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
 
 var limiter = new RateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes 
-    max: 100, // limit each IP to 100 requests per windowMs 
-    delayMs: 0 // disable delaying - full speed until the max limit is reached 
+  windowMs: 15 * 60 * 1000, // 15 minutes 
+  max: 100, // limit each IP to 100 requests per windowMs 
+  delayMs: 0 // disable delaying - full speed until the max limit is reached 
 });
 //  apply to all requests 
 app.use(limiter);
 
 app.use(helmet()); // Take the defaults to start with
 app.use(csp({
-    // Specify directives for content sources
-    directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", 'ajax.googleapis.com', 'maxcdn.bootstrapcdn.com'],
-        styleSrc: ["'self'", "'unsafe-inline'", 'maxcdn.bootstrapcdn.com'],
-        fontSrc: ["'self'", 'maxcdn.bootstrapcdn.com'],
-        imgSrc: ['*']
-        // reportUri: '/report-violation',
-    }
+  // Specify directives for content sources
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'", 'ajax.googleapis.com', 'maxcdn.bootstrapcdn.com'],
+    styleSrc: ["'self'", "'unsafe-inline'", 'maxcdn.bootstrapcdn.com'],
+    fontSrc: ["'self'", 'maxcdn.bootstrapcdn.com'],
+    imgSrc: ['*']
+    // reportUri: '/report-violation',
+  }
 }));
 //app.use(helmet.noCache());
 
@@ -82,28 +82,28 @@ var MongoClient = require('mongodb').MongoClient;
 
 //Use connect method to connect to the Server
 MongoClient.connect(config.MONGODB_CONNECT_URL, function (err, dbConn) {
-    assert.equal(null, err);
-    db.dbConnection = dbConn;
-    db.collection = dbConn.collection('newswatcher');
-    console.log("Connected to MongoDB server");
+  assert.equal(null, err);
+  db.dbConnection = dbConn;
+  db.collection = dbConn.collection('newswatcher');
+  console.log("Connected to MongoDB server");
 });
 
 process.on('SIGINT', function () {
-    console.log('MongoDB connection close on app termination');
-    db.dbConnection.close();
-    process.exit(0);
+  console.log('MongoDB connection close on app termination');
+  db.dbConnection.close();
+  process.exit(0);
 });
 
 process.on('SIGUSR2', function () {
-    console.log('MongoDB connection close on app restart');
-    db.dbConnection.close();
-    process.kill(process.pid, 'SIGUSR2');
+  console.log('MongoDB connection close on app restart');
+  db.dbConnection.close();
+  process.kill(process.pid, 'SIGUSR2');
 });
 
 app.use(function (req, res, next) {
-    req.db = db;
-    req.node2 = node2;
-    next();
+  req.db = db;
+  req.node2 = node2;
+  next();
 });
 
 // For loading the default HTML page that acts as the SPA Web site
@@ -111,7 +111,7 @@ app.use(function (req, res, next) {
 //     res.render('index.html')
 // });
 app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 //
@@ -159,29 +159,29 @@ app.use('/api/sharednews', sharedNews);
 //
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
 // development error handler that will add in a stacktrace
 if (app.get('env') === 'development') {
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500).json({ message: err.toString(), error: err });
-        console.log(err);
-    });
+  app.use(function (err, req, res, next) {
+    res.status(err.status || 500).json({ message: err.toString(), error: err });
+    console.log(err);
+  });
 }
 
 // production error handler with no stacktraces exposed to users
 app.use(function (err, req, res, next) {
-    res.status(err.status || 500).json({ message: err.toString(), error: {} });
-    console.log(err);
+  res.status(err.status || 500).json({ message: err.toString(), error: {} });
+  console.log(err);
 });
 
 app.set('port', process.env.PORT || 3000);
 
 //var debug = require('debug')('NewsWatcher');
 var server = app.listen(app.get('port'), function () {
-    //debug('Express server listening on port ' + server.address().port);
-    console.log('Express server listening on port ' + server.address().port);
+  //debug('Express server listening on port ' + server.address().port);
+  console.log('Express server listening on port ' + server.address().port);
 });

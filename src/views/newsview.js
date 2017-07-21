@@ -1,94 +1,87 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router'
 import PropTypes from 'prop-types';
+import superagent from 'superagent';
+import noCache from 'superagent-no-cache';
 import '../App.css';
 
 function toHours(date) {
-	var d1 = date;
-	var d2 = Date.now();
-	var diff = Math.floor((d2 - d1) / 3600000);
-	if (diff == 0 || diff < 2) {
-		return "1 hour ago";
-	} else {
-		return diff.toString() + " hours ago";
-	}
+  var d1 = date;
+  var d2 = Date.now();
+  var diff = Math.floor((d2 - d1) / 3600000);
+  if (diff == 0 || diff < 2) {
+    return "1 hour ago";
+  } else {
+    return diff.toString() + " hours ago";
+  }
 }
 
 class NewsView extends Component {
-	constructor(props) {
-		super(props);
+  constructor(props) {
+    super(props);
 
-		this.state = {
-			isLoading: true,
-			selectedIdx: 0,
-			user: null,
-			news: null
-		};
-	}
+    this.state = {
+      isLoading: true,
+      selectedIdx: 0,
+      user: null,
+      news: null
+    };
+  }
 
-	componentDidMount() {
-		var myInit = {
-			method: 'GET',
-			cache: "no-cache",
-			headers: new Headers({
-				'Cache-Control': 'no-cache',
-				'Pragma': 'no-cache',
-				'If-Modified-Since': '0',
-				"x-auth": this.props.session.token
-			})
-		};
+  componentDidMount() {
+    superagent.get(`/api/users/${this.props.session.userId}`)
+      .set('Cache-Control', 'no-cache')
+      .set('Pragma', 'no-cache')
+      .set('If-Modified-Since', '0')
+      .set('x-auth', this.props.session.token)
+      .use(noCache)
+      .end((err, res) => {
+        if (err || !res.ok || res.status != 200) {
+          //$rootScope.loggedIn = false;PASS up back through a callback!. Could make a single one that reacts to msg and these also
+          // Just pass up a single failure message an then can do all these there
+          //$rootScope.session = null;
+          //$window.localStorage.removeItem("userToken");
+          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
+          <Redirect to="/" />
+        } else {
+          console.log("HERE10");
+          console.log(res);
+          this.setState({ user: res.body });
+          this.state.news = this.state.user.newsFilters[this.state.selectedIdx].newsStories;
+          for (var i = 0; i < this.state.user.newsFilters.length; i++) {
+            for (var j = 0; j < this.state.user.newsFilters[i].newsStories.length; j++) {
+              this.state.user.newsFilters[i].newsStories[j].hours = toHours(this.state.user.newsFilters[i].newsStories[j].date);
+            }
+          }
+          this.setState({ isLoading: false });
+          this.props.parentMsgCB({ type: "MSG_OK", msg: "News fetched" });
+        }
+      });
+  }
 
-		fetch(`/api/sessions/${this.state.session.userId}`, myInit).then(function (response) {
-			if (response.ok) {
-				return response.json()
-			}
-			throw new Error('Network response was not ok.');
-		}).then(function (myJson) {
-			console.log("HERE10");
-			console.log(myJson);
-			this.setState({ user: myJson.data });
-			this.state.news = this.state.user.newsFilters[this.state.selectedIdx].newsStories;
-			for (var i = 0; i < this.state.user.newsFilters.length; i++) {
-				for (var j = 0; j < this.state.user.newsFilters[i].newsStories.length; j++) {
-					this.state.user.newsFilters[i].newsStories[j].hours = toHours(this.state.user.newsFilters[i].newsStories[j].date);
-				}
-			}
-
-			//$scope.$emit('msg', "News fetched");CAN have a callback to the parent!!!!!!!!!!!!!!!!
-		}).catch(function (error) {
-			console.log("NEWS FETCH FAILURE:" + error);
-			//$rootScope.loggedIn = false;PASS up back through a callback!. Could make a single one that reacts to msg and these also
-			// Just pass up a single failure message an then can do all these there
-			//$rootScope.session = null;
-			//$window.localStorage.removeItem("userToken");
-			//$scope.$emit('msg', "News fetch failed. " + response.data.message);CAN have a callback to the parent!!!!!!!!!!!!!!!!
-			<Redirect to="/" />
-		});
-	}
-
-	render() {
-		//look for some react Bootstrap component that put up a loading state
-		if (this.state.isLoading) {
-			return (
-				<h1>Loading...</h1>
-			);
-		}
-		return (
-			<div>
-				<ul>
-					{this.state.news.map(story =>
-						<li key={story.id}>{story.title}</li>
-					)}
-				</ul>
-			</div>
-		);
-	}
+  render() {
+    //look for some react Bootstrap component that put up a loading state
+    if (this.state.isLoading) {
+      return (
+        <h1>Loading...</h1>
+      );
+    }
+    return (
+      <div>
+        <ul>
+          {this.state.news.map(story =>
+            <li key={story.id}>{story.title}</li>
+          )}
+        </ul>
+      </div>
+    );
+  }
 }
 
-// NewsView.propTypes = {
-// 	name1: PropTypes.string.isRequired,
-// 	name2: PropTypes.string
-// };
+NewsView.propTypes = {
+  session: PropTypes.func.isRequired,
+  parentMsgCB: PropTypes.func.isRequired
+};
 
 // NewsView.defaultProps = {
 // 	name2: 'Unknown person'
