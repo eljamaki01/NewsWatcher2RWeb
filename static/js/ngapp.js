@@ -88,7 +88,7 @@ angular.module('app', ['ngRoute'])
 				}
 				$location.path('/news').replace();
 			}, function errorCallback(response) {
-				$scope.$emit('msg', "Sign in failed. " + response.data.message);
+				$scope.$emit('msg', "Sign in failed: " + response.data.message);
 			});
 		}
 		
