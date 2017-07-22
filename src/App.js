@@ -41,7 +41,7 @@ class App extends React.Component {
     if (retrievedObject) {
       this.setState({ session: JSON.parse(retrievedObject) });
       this.setState({ loggedIn: true });
-      this.setState({ currentMsg: `Signed in as ${this.state.session.displayName}` });
+      this.setState({ currentMsg: `Signed in as ${retrievedObject.displayName}` });
       window.location.replace(window.location.pathname + '#/news');
     } else {
       window.location.replace(window.location.pathname + '#/');
@@ -53,6 +53,7 @@ class App extends React.Component {
       this.setState({ loggedIn: true });
       this.setState({ session: payload.data });
       window.location.replace(window.location.pathname + '#/news');
+      //window.history.replaceState(undefined, undefined, "#/news")
     }
     this.setState({ currentMsg: payload.msg });
   }
@@ -82,18 +83,18 @@ class App extends React.Component {
           <Navbar fluid default collapseOnSelect>
             <Navbar.Header>
               <Navbar.Brand>
-                <a href="#">NewsWatcher {this.state.currentMsg && <span><small id="currentMsgIndex">({this.state.currentMsg})</small></span>}</a>
+                NewsWatcher {this.state.currentMsg && <span><small id="currentMsgIndex">({this.state.currentMsg})</small></span>}
               </Navbar.Brand>
               <Navbar.Toggle />
             </Navbar.Header>
             <Navbar.Collapse>
               <Nav>
-                {this.state.loggedIn && <NavItem id="newsLink" eventKey={1} href="javascript:void(0)"><Link to="/news">News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="savedLink" eventKey={2} href="javascript:void(0)"><Link to="/savednews">Saved News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="sharedLink" eventKey={3} href="javascript:void(0)"><Link to="/sharednews">Shared News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="profileLink" eventKey={4} href="javascript:void(0)"><Link to="/profile">Profile</Link></NavItem>}
+                {this.state.loggedIn && <NavItem id="newsLink" eventKey={1} href="javascript:void(0)"><Link to="/news" replace>News</Link></NavItem>}
+                {this.state.loggedIn && <NavItem id="savedLink" eventKey={2} href="javascript:void(0)"><Link to="/savednews" replace>Saved News</Link></NavItem>}
+                {this.state.loggedIn && <NavItem id="sharedLink" eventKey={3} href="javascript:void(0)"><Link to="/sharednews" replace>Shared News</Link></NavItem>}
+                {this.state.loggedIn && <NavItem id="profileLink" eventKey={4} href="javascript:void(0)"><Link to="/profile" replace>Profile</Link></NavItem>}
                 {this.state.loggedIn && <NavItem id="logoutLink" eventKey={5} href="javascript:void(0)" onClick={this.handleLogout}>Logout</NavItem>}
-                {!this.state.loggedIn && <NavItem eventKey={6} href="javascript:void(0)"><Link to="/">Login</Link></NavItem>}
+                {!this.state.loggedIn && <NavItem eventKey={6} href="javascript:void(0)"><Link to="/" replace>Login</Link></NavItem>}
               </Nav>
             </Navbar.Collapse>
           </Navbar>

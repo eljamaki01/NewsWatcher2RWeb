@@ -133,7 +133,7 @@ class LoginView extends Component {
             type="password"
             onChange={this.handlePasswordChange}
           />
-          <Checkbox checked onChange={this.handleCheckboxChange}>
+          <Checkbox checked={this.state.remeberMe} onChange={this.handleCheckboxChange}>
             Keep me logged in
           </Checkbox>
           <Button bsStyle="success" bsSize="lg" block type="submit">
