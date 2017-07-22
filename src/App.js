@@ -1,13 +1,8 @@
 import React, { Component } from 'react';
+import superagent from 'superagent';
 import './App.css';
-import {
-  HashRouter,
-  Switch,
-  Route,
-  Link
-} from 'react-router-dom'
+import { HashRouter, Switch, Route, Link } from 'react-router-dom'
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
-import { Redirect } from 'react-router'
 import LoginView from './views/loginview';
 import NewsView from './views/newsview';
 
@@ -36,7 +31,7 @@ class App extends React.Component {
     this.state = {
       loggedIn: false,
       session: null,
-      currentMsg: "..."
+      currentMsg: ""
     };
   }
 
@@ -44,95 +39,40 @@ class App extends React.Component {
     // Check for token in HTML5 client side local storage
     var retrievedObject = window.localStorage.getItem("userToken");
     if (retrievedObject) {
-      //console.log(retrievedObject);//????????????????????????????
       this.setState({ session: JSON.parse(retrievedObject) });
-      //$scope.remeberMe = true;
       this.setState({ loggedIn: true });
-      //$http.defaults.headers.common['x-auth'] = this.state.session.token;
-      //$scope.$emit('msg', "Signed in as " + this.state.session.displayName);
       this.setState({ currentMsg: `Signed in as ${this.state.session.displayName}` });
-      ////$location.path('/news').replace();
-      <Redirect to="/#/news" />
+      window.location.replace(window.location.pathname + '#/news');
     } else {
-      //$scope.remeberMe = false;
-      ////$location.path('/').replace();
-      ///////////////////////////////////<Redirect to="/" /> // "/#/" ?????
-      // <Redirect to="/#/" />
-      //this.props.history.push("/new/url")
-      //window.location.replace(window.location.pathname + '#/news');
-      // <Redirect to="/#/news" />
+      window.location.replace(window.location.pathname + '#/');
     }
-  }
-
-  onMsg = (msg) => {
-    //			$scope.currentMsg = msg;
-  }
-
-  handleLogout = (event) => {
-    event.preventDefault();
-    // this.props.history.push(event.currentTarget.getAttribute('href'));
-    // Try to get a hold of react routing on its own, else, read this article after googling for other ways -
-    // http://serverless-stack.com/chapters/adding-links-in-the-navbar.html
-    // $http({
-    //   method: 'DELETE',
-    //   url: "/api/sessions/" + this.state.session.userId,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'x-auth': this.state.session.token
-    //   },
-    //   responseType: 'json'
-    // }).then(function successCallback(response) {
-    //   this.setState({ loggedIn: false });
-    //   this.setState({ session: null });
-    //   //$http.defaults.headers.common["x-auth"] = null;
-    //   window.localStorage.removeItem("userToken");
-    //   //$scope.$emit('msg', "Signed out");
-    //   this.setState({ currentMsg: "Signed out" });
-    //   ///////$location.path('/').replace();
-    //   <Redirect to="/" />
-    //   //this.props.history.push("/new/url")
-    //   //window.location.replace(window.location.pathname + window.location.search + '#/unicorn/pacomo/edit');
-    // }, function errorCallback(response) {
-    //   //$scope.$emit('msg', "Sign out failed. " + response.data.message);
-    //   this.setState({ currentMsg: `Sign out failed: ${response.data.message}` });
-    // });
-    // var myInit = {
-    //   method: 'GET',
-    //   headers: myHeaders,
-    //   mode: 'cors',
-    //   cache: 'default'
-    // };
-    var myInit = {
-      method: 'DELETE',
-      headers: new Headers({
-        "Content-Type": "application/json",
-        "x-auth": this.state.session.token
-      })
-    };
-
-    fetch(`/api/sessions/${this.state.session.userId}`, myInit).then(function (response) {
-      if (response.ok) {
-        return response.json()
-      }
-      throw new Error('Network response was not ok.');
-    }).then(function (myJson) {
-      this.setState({ loggedIn: false });
-      this.setState({ session: null });
-      window.localStorage.removeItem("userToken");
-      this.setState({ currentMsg: "Signed out" });
-      <Redirect to="/" />
-    }).catch(function (error) {
-      this.setState({ currentMsg: `Sign out failed: ${error.message}` });
-    });
   }
 
   handleLogin = (payload) => {
     if (payload.type === "MSG_LOGIN_OK") {
       this.setState({ loggedIn: true });
       this.setState({ session: payload.data });
-      <Redirect to="/#/news" />
+      window.location.replace(window.location.pathname + '#/news');
     }
     this.setState({ currentMsg: payload.msg });
+  }
+
+  handleLogout = (event) => {
+    event.preventDefault();
+    superagent.delete(`/api/sessions/${this.state.session.userId}`)
+      .set('Content-Type', 'application/json')
+      .set('x-auth', this.state.session.token)
+      .end((err, res) => {
+        if (err || !res.ok || res.status != 200) {
+          this.setState({ currentMsg: `Sign out failed: ${res.body.message}` });
+        } else {
+          this.setState({ loggedIn: false });
+          this.setState({ session: null });
+          window.localStorage.removeItem("userToken");
+          this.setState({ currentMsg: "Signed out" });
+          window.location.replace(window.location.pathname + '#/');
+        }
+      });
   }
 
   render() {
@@ -163,7 +103,7 @@ class App extends React.Component {
             <Route path="/savednews" component={News} />
             <Route path="/sharednews" component={SharedNews} />
             <Route path="/profile" component={Profile} />
-            <Route path="/" render={props => <LoginView parentMsgCB={this.handleLogin} {...props} />} />
+            <Route path="/" render={props => <LoginView session={this.state.session} parentMsgCB={this.handleLogin} {...props} />} />
           </Switch>
         </div>
       </HashRouter>

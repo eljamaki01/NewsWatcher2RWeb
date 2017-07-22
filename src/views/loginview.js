@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
-// import { Redirect } from 'react-router'
 import PropTypes from 'prop-types';
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Checkbox, Button, Modal } from 'react-bootstrap';
+import { FormGroup, ControlLabel, FormControl, HelpBlock, Checkbox, Button, Modal, Glyphicon } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import '../App.css';
 
-function FieldGroup({ id, label, help, ...props }) {
+function FieldGroup({ id, glyph, label, help, ...props }) {
   return (
     <FormGroup controlId={id}>
-      <ControlLabel>{label}</ControlLabel>
+      <ControlLabel><Glyphicon glyph={glyph} /> {label}</ControlLabel>
       <FormControl {...props} />
       {help && <HelpBlock>{help}</HelpBlock>}
     </FormGroup>
@@ -29,7 +28,16 @@ class LoginView extends Component {
     };
   }
 
+  componentDidMount() {
+    if (this.props.session) {
+      //this.props.history.push("/#/news");
+      // OR try this below
+      window.location.replace(window.location.pathname + '#/news');
+    }
+  }
+
   handleRegister = (event) => {
+    event.preventDefault();
     superagent.post("/api/users")
       .send({
         displayName: this.state.name,
@@ -43,11 +51,13 @@ class LoginView extends Component {
           this.props.parentMsgCB({ type: "MSG_REGISTRATION_FAIL", msg: `Registration failure: ${res.body.message}` });
         } else {
           this.props.parentMsgCB({ type: "MSG_REGISTRATION_OK", msg: "Registered" });
+          this.setState({ showModal: false });
         }
       });
   }
 
   handleLogin = (event) => {
+    event.preventDefault();
     superagent.post("/api/sessions")
       .send({
         email: this.state.email,
@@ -59,7 +69,6 @@ class LoginView extends Component {
         if (err || !res.ok || res.status != 201) {
           this.props.parentMsgCB({ type: "MSG_LOGIN_FAIL", msg: `Sign in failed: ${res.body.message}` });
         } else {
-          this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
           // Set the token in client side storage if the user desires
           if (this.state.remeberMe) {
             var xfer = {
@@ -71,7 +80,8 @@ class LoginView extends Component {
           } else {
             window.localStorage.removeItem("userToken");
           }
-          // <Redirect to="/#/news" />
+          this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
+          // window.location.replace(window.location.pathname + '#/news');
         }
       });
   }
@@ -93,7 +103,6 @@ class LoginView extends Component {
   }
 
   handleOpenRegModal = (event) => {
-    //event.preventDefault();
     this.setState({ showModal: true });
   }
 
@@ -102,18 +111,24 @@ class LoginView extends Component {
   }
 
   render() {
+    // If already logged in, then don't go here and get routed to the news view
+    if (this.props.session) {
+      return null;
+    }
     return (
       <div>
         <form onSubmit={this.handleLogin}>
           <FieldGroup
             id="formControlsEmail"
             type="email"
+            glyph="user"
             label="Email Address"
             placeholder="Enter email"
             onChange={this.handleEmailChange}
           />
           <FieldGroup
             id="formControlsPassword"
+            glyph="eye-open"
             label="Password"
             type="password"
             onChange={this.handlePasswordChange}
@@ -135,6 +150,7 @@ class LoginView extends Component {
               <FieldGroup
                 id="formControlsEmail"
                 type="text"
+                glyph="user"
                 label="Display Name"
                 placeholder="Enter display name"
                 onChange={this.handleNameChange}
@@ -142,23 +158,25 @@ class LoginView extends Component {
               <FieldGroup
                 id="formControlsEmail"
                 type="email"
+                glyph="user"
                 label="Email Address"
                 placeholder="Enter email"
                 onChange={this.handleEmailChange}
               />
               <FieldGroup
                 id="formControlsPassword"
+                glyph="eye-open"
                 label="Password"
                 type="password"
                 onChange={this.handlePasswordChange}
               />
               <Button bsStyle="success" bsSize="lg" block type="submit">
-                Register
+                <Glyphicon glyph="off" /> Register
               </Button>
             </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseRegModal}>Cancel</Button>
+            <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
           </Modal.Footer>
         </Modal>
       </div>
@@ -167,6 +185,7 @@ class LoginView extends Component {
 }
 
 LoginView.propTypes = {
+  session: PropTypes.func.isRequired,
   parentMsgCB: PropTypes.func.isRequired
 };
 

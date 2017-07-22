@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Redirect } from 'react-router'
 import PropTypes from 'prop-types';
+import { Media } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import '../App.css';
@@ -42,10 +42,8 @@ class NewsView extends Component {
           //$rootScope.session = null;
           //$window.localStorage.removeItem("userToken");
           this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
-          <Redirect to="/" />
+          window.location.replace(window.location.pathname + '#/');
         } else {
-          console.log("HERE10");
-          console.log(res);
           this.setState({ user: res.body });
           this.state.news = this.state.user.newsFilters[this.state.selectedIdx].newsStories;
           for (var i = 0; i < this.state.user.newsFilters.length; i++) {
@@ -60,7 +58,6 @@ class NewsView extends Component {
   }
 
   render() {
-    //look for some react Bootstrap component that put up a loading state
     if (this.state.isLoading) {
       return (
         <h1>Loading...</h1>
@@ -68,11 +65,40 @@ class NewsView extends Component {
     }
     return (
       <div>
-        <ul>
+        < h1 > News</h1 >
+        {/* <button ng-repeat="filter in user.newsFilters" type="button" className="list-group-item" onClick="selectOne($index)" className="{active: $index == selectedIdx}"><strong>{filter.name}</strong></button> */}
+        <hr />
+
+        <Media.List>
           {this.state.news.map(story =>
-            <li key={story.id}>{story.title}</li>
+            <Media.ListItem>
+              <Media.Left>
+                <a href={story.link} target="_blank">
+                  <img className="media-object" src={story.imageUrl} />
+                </a>
+              </Media.Left>
+              <Media.Body>
+                <Media.Heading><b>{story.title}</b></Media.Heading>
+                <p>{story.contentSnippet}</p>
+                {story.source} <span>{story.hours}</span>
+                <Media.Body>
+                  <a href="javascript:void(0)">Save</a>
+                  {/* <a href="javascript:void(0)" onClick={this.saveStory($index)}>Save</a> | <span><a href="javascript:void(0)" onClick={this.shareStory($index)}>Share</a></span> */}
+                </Media.Body>
+              </Media.Body>
+            </Media.ListItem>
           )}
-        </ul>
+          <Media.ListItem>
+            <Media.Left>
+              <a href="http://developer.nytimes.com" target="_blank">
+                <img src="poweredby_nytimes_30b.png" />
+              </a>
+            </Media.Left>
+            <Media.Body>
+              <Media.Heading><b>Data provided by The New York Times</b></Media.Heading>
+            </Media.Body>
+          </Media.ListItem>
+        </Media.List>
       </div>
     );
   }
@@ -83,82 +109,4 @@ NewsView.propTypes = {
   parentMsgCB: PropTypes.func.isRequired
 };
 
-// NewsView.defaultProps = {
-// 	name2: 'Unknown person'
-// };
-
 export default NewsView;
-// //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// ???As take over, switch everything to usage of react- bootsrap components if ines are available
-// 				< h1 > News</h1 >
-// 				<hr />
-// 				<ul class="media-list">
-// 					{this.state.news.map(story =>
-// 						<li key={post.id}>{post.title}</li>
-// 						<li class="media">
-// 						<div class="media-left">
-// 							<a href={story.link} target="_blank">
-// 								<img class="media-object" ng-src={story.imageUrl}>
-// 			</a>
-// 		</div>
-// 							<div class="media-body">
-// 								<h class="media-heading"><b>{story.title}</b></h>
-// 								<p>{story.contentSnippet}</p>
-// 								{story.source} <span>{story.hours}</span>
-// 								<div class="media-body">
-// 									<a href="javascript:void(0)" ng-click="saveStory($index)">Save</a> | <span><a href="javascript:void(0)" ng-click="shareStory($index)">Share</a></span>
-// 								</div>
-// 							</div>
-// 	</li>
-// 						<li class="media">
-// 							<div class="media-left">
-// 								<a href="http://developer.nytimes.com" target="_blank">
-// 									<img ng-src="poweredby_nytimes_30b.png">
-// 			</a>
-// 		</div>
-// 								<div class="media-body">
-// 									<h class="media-heading"><b>Data provided by The New York Times</b></h>
-// 								</div>
-// 	</li>
-// 					)}
-// 				</ul>
-// //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-
-// $scope.selectOne = function (index) {
-// 	$scope.selectedIdx = index;
-// 	$scope.news = $scope.user.newsFilters[$scope.selectedIdx].newsStories;
-// }
-
-// $scope.saveStory = function (index) {
-// 	$http({
-// 		method: 'POST',
-// 		url: "/api/users/" + $rootScope.session.userId + "/savedstories",
-// 		headers: {
-// 			'Content-Type': 'application/json'
-// 		},
-// 		responseType: 'json',
-// 		data: $scope.news[index]
-// 	}).then(function successCallback(response) {
-// 		$scope.$emit('msg', "Story saved");
-// 	}, function errorCallback(response) {
-// 		$scope.$emit('msg', "Story save failed. " + response.data.message);
-// 	});
-// }
-
-// $scope.shareStory = function (index) {
-// 	$http({
-// 		method: 'POST',
-// 		url: '/api/sharednews',
-// 		headers: {
-// 			'Content-Type': 'application/json'
-// 		},
-// 		responseType: 'json',
-// 		data: $scope.news[index]
-// 	}).then(function successCallback(response) {
-// 		$scope.$emit('msg', "Story shared");
-// 	}, function errorCallback(response) {
-// 		$scope.$emit('msg', "Story share failed. " + response.data.message);
-// 	});
-// }
-// 	}])
