@@ -148,7 +148,7 @@ class LoginView extends Component {
           <Modal.Body>
             <form onSubmit={this.handleRegister}>
               <FieldGroup
-                id="formControlsEmail"
+                id="formControlsName"
                 type="text"
                 glyph="user"
                 label="Display Name"

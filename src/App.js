@@ -5,6 +5,7 @@ import { HashRouter, Switch, Route, Link } from 'react-router-dom'
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import LoginView from './views/loginview';
 import NewsView from './views/newsview';
+import ProfileView from './views/profileview';
 
 const News = () => (
   <div>
@@ -15,12 +16,6 @@ const News = () => (
 const SharedNews = () => (
   <div>
     <h2>Shared News</h2>
-  </div>
-)
-
-const Profile = () => (
-  <div>
-    <h2>Profile</h2>
   </div>
 )
 
@@ -103,7 +98,7 @@ class App extends React.Component {
             <Route path="/news" render={props => <NewsView session={this.state.session} parentMsgCB={this.handleLogin} {...props} />} />
             <Route path="/savednews" component={News} />
             <Route path="/sharednews" component={SharedNews} />
-            <Route path="/profile" component={Profile} />
+            <Route path="/profile" render={props => <ProfileView session={this.state.session} parentMsgCB={this.handleLogin} {...props} />} />
             <Route path="/" render={props => <LoginView session={this.state.session} parentMsgCB={this.handleLogin} {...props} />} />
           </Switch>
         </div>

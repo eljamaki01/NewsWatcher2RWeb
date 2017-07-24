@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Media } from 'react-bootstrap';
+import { FormGroup, FormControl, Media } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import '../App.css';
@@ -23,7 +23,7 @@ class NewsView extends Component {
     this.state = {
       isLoading: true,
       selectedIdx: 0,
-      user: null,
+      // user: null,
       news: null
     };
   }
@@ -44,11 +44,11 @@ class NewsView extends Component {
           this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
           window.location.replace(window.location.pathname + '#/');
         } else {
-          this.setState({ user: res.body });
-          this.state.news = this.state.user.newsFilters[this.state.selectedIdx].newsStories;
-          for (var i = 0; i < this.state.user.newsFilters.length; i++) {
-            for (var j = 0; j < this.state.user.newsFilters[i].newsStories.length; j++) {
-              this.state.user.newsFilters[i].newsStories[j].hours = toHours(this.state.user.newsFilters[i].newsStories[j].date);
+          // this.setState({ user: res.body });
+          this.state.news = res.body.newsFilters[this.state.selectedIdx].newsStories;
+          for (var i = 0; i < res.body.newsFilters.length; i++) {
+            for (var j = 0; j < res.body.newsFilters[i].newsStories.length; j++) {
+              res.body.newsFilters[i].newsStories[j].hours = toHours(res.body.newsFilters[i].newsStories[j].date);
             }
           }
           this.setState({ isLoading: false });
@@ -65,10 +65,18 @@ class NewsView extends Component {
     }
     return (
       <div>
-        < h1 > News</h1 >
-        {/* <button ng-repeat="filter in user.newsFilters" type="button" className="list-group-item" onClick="selectOne($index)" className="{active: $index == selectedIdx}"><strong>{filter.name}</strong></button> */}
+        <h1>News</h1 >
+        {/* <div ng-if="showSavedNews == null" class="list-group">
+          <button ng-repeat="filter in user.newsFilters" type="button" class="list-group-item" ng-click="selectOne($index)" ng-class="{active: $index == selectedIdx}"><strong>{{ filter.name }}</strong></button>
+        </div> */}
+        {/* <FormGroup controlId="formControlsSelect">
+          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx} defaultValue={this.state.selectedIdx}>
+            {this.state.user.newsFilters.map((filter, idx) =>
+              <option value={idx}><strong>{filter.name}</strong></option>
+            )}
+          </FormControl>
+        </FormGroup> */}
         <hr />
-
         <Media.List>
           {this.state.news.map(story =>
             <Media.ListItem>
