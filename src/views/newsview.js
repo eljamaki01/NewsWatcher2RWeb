@@ -9,7 +9,7 @@ function toHours(date) {
   var d1 = date;
   var d2 = Date.now();
   var diff = Math.floor((d2 - d1) / 3600000);
-  if (diff == 0 || diff < 2) {
+  if (diff === 0 || diff < 2) {
     return "1 hour ago";
   } else {
     return diff.toString() + " hours ago";
@@ -23,12 +23,15 @@ class NewsView extends Component {
     this.state = {
       isLoading: true,
       selectedIdx: 0,
-      // user: null,
-      news: null
+      newsFilters: null
     };
   }
 
   componentDidMount() {
+    if (!this.props.session) {
+      return this.props.history.replace('/#/')
+    }
+
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -36,23 +39,35 @@ class NewsView extends Component {
       .set('x-auth', this.props.session.token)
       .use(noCache)
       .end((err, res) => {
-        if (err || !res.ok || res.status != 200) {
-          //$rootScope.loggedIn = false;PASS up back through a callback!. Could make a single one that reacts to msg and these also
-          // Just pass up a single failure message an then can do all these there
-          //$rootScope.session = null;
-          //$window.localStorage.removeItem("userToken");
+        if (err || !res.ok || res.status !== 200) {
           this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
-          window.location.replace(window.location.pathname + '#/');
         } else {
-          // this.setState({ user: res.body });
-          this.state.news = res.body.newsFilters[this.state.selectedIdx].newsStories;
           for (var i = 0; i < res.body.newsFilters.length; i++) {
             for (var j = 0; j < res.body.newsFilters[i].newsStories.length; j++) {
               res.body.newsFilters[i].newsStories[j].hours = toHours(res.body.newsFilters[i].newsStories[j].date);
             }
           }
-          this.setState({ isLoading: false });
+          this.setState({ newsFilters: res.body.newsFilters, isLoading: false });
           this.props.parentMsgCB({ type: "MSG_OK", msg: "News fetched" });
+        }
+      });
+  }
+
+  handleChangeFilter = (event) => {
+    this.setState({ selectedIdx: parseInt(event.target.value, 10) });
+  }
+
+  handleShareStory = (index, event) => {
+    event.preventDefault();
+    superagent.post('/api/sharednews')
+      .send(this.state.newsFilters[this.state.selectedIdx].newsStories[index])
+      .set('Content-Type', 'application/json')
+      .set('x-auth', this.props.session.token)
+      .end((err, res) => {
+        if (err || !res.ok || res.status !== 201) {
+          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Share of story failed: ${res.body.message}` });
+        } else {
+          this.props.parentMsgCB({ type: "MSG_OK", msg: "Story shared" });
         }
       });
   }
@@ -66,23 +81,20 @@ class NewsView extends Component {
     return (
       <div>
         <h1>News</h1 >
-        {/* <div ng-if="showSavedNews == null" class="list-group">
-          <button ng-repeat="filter in user.newsFilters" type="button" class="list-group-item" ng-click="selectOne($index)" ng-class="{active: $index == selectedIdx}"><strong>{{ filter.name }}</strong></button>
-        </div> */}
-        {/* <FormGroup controlId="formControlsSelect">
-          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx} defaultValue={this.state.selectedIdx}>
-            {this.state.user.newsFilters.map((filter, idx) =>
+        <FormGroup controlId="formControlsSelect">
+          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
+            {this.state.newsFilters.map((filter, idx) =>
               <option value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
-        </FormGroup> */}
+        </FormGroup>
         <hr />
         <Media.List>
-          {this.state.news.map(story =>
+          {this.state.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
             <Media.ListItem>
               <Media.Left>
                 <a href={story.link} target="_blank">
-                  <img className="media-object" src={story.imageUrl} />
+                  <img alt="" className="media-object" src={story.imageUrl} />
                 </a>
               </Media.Left>
               <Media.Body>
@@ -90,16 +102,15 @@ class NewsView extends Component {
                 <p>{story.contentSnippet}</p>
                 {story.source} <span>{story.hours}</span>
                 <Media.Body>
-                  <a href="javascript:void(0)">Save</a>
-                  {/* <a href="javascript:void(0)" onClick={this.saveStory($index)}>Save</a> | <span><a href="javascript:void(0)" onClick={this.shareStory($index)}>Share</a></span> */}
+                  <a style={{ cursor: 'pointer' }} onClick={(event) => this.handleShareStory(idx, event)}>Share</a>
                 </Media.Body>
               </Media.Body>
             </Media.ListItem>
           )}
           <Media.ListItem>
             <Media.Left>
-              <a href="http://developer.nytimes.com" target="_blank">
-                <img src="poweredby_nytimes_30b.png" />
+              <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
+                <img alt="" src="poweredby_nytimes_30b.png" />
               </a>
             </Media.Left>
             <Media.Body>

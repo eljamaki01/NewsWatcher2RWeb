@@ -24,12 +24,17 @@ class ProfileView extends Component {
 
     this.state = {
       isLoading: true,
+      deleteOK: false,
       selectedIdx: 0,
       user: null
     };
   }
 
   componentDidMount() {
+    if (!this.props.session) {
+      return this.props.history.replace('/#/')
+    }
+
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -37,20 +42,31 @@ class ProfileView extends Component {
       .set('x-auth', this.props.session.token)
       .use(noCache)
       .end((err, res) => {
-        if (err || !res.ok || res.status != 200) {
+        if (err || !res.ok || res.status !== 200) {
           this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Profile fetch failed: ${res.body.message}` });
         } else {
           for (var i = 0; i < res.body.newsFilters.length; i++) {
             res.body.newsFilters[i].keywordsStr = res.body.newsFilters[i].keyWords.join(',');
           }
-          this.setState({ user: res.body });
-          this.setState({ isLoading: false });
+          this.setState({ user: res.body, isLoading: false });
           this.props.parentMsgCB({ type: "MSG_OK", msg: "Profile fetched" });
         }
       });
   }
 
   handleUnRegister = (event) => {
+    event.preventDefault();
+    superagent.delete(`/api/users/${this.props.session.userId}`)
+      .send(this.state.user)
+      .set('Content-Type', 'application/json')
+      .set('x-auth', this.props.session.token)
+      .end((err, res) => {
+        if (err || !res.ok || res.status !== 200) {
+          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Account delete failed: ${res.body.message}` });
+        } else {
+          this.props.parentMsgCB({ type: "MSG_ACCT_DELETE_OK", msg: "Account deleted" });
+        }
+      });
   }
 
   handleNameChange = (event) => {
@@ -84,12 +100,12 @@ class ProfileView extends Component {
   }
 
   handleChangeFilter = (event) => {
-    this.setState({ selectedIdx: parseInt(event.target.value) });
+    this.setState({ selectedIdx: parseInt(event.target.value, 10) });
   }
 
   handleAdd = (event) => {
     event.preventDefault();
-    if (this.state.user.newsFilters.length == 5) {
+    if (this.state.user.newsFilters.length === 5) {
       this.props.parentMsgCB({ type: "MSG_OK", msg: "No more newsFilters allowed" });
     } else {
       var len = this.state.user.newsFilters.length;
@@ -133,12 +149,16 @@ class ProfileView extends Component {
       .set('x-auth', this.props.session.token)
       .use(noCache)
       .end((err, res) => {
-        if (err || !res.ok || res.status != 200) {
+        if (err || !res.ok || res.status !== 200) {
           this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Profile save failed: ${res.body.message}` });
         } else {
           this.props.parentMsgCB({ type: "MSG_OK", msg: "Profile saved" });
         }
       });
+  }
+
+  handleCheckboxChange = (event) => {
+    this.setState({ deleteOK: event.target.checked });
   }
 
   render() {
@@ -151,7 +171,7 @@ class ProfileView extends Component {
       <div>
         <h1>Profile: News Filters</h1>
         <FormGroup controlId="formControlsSelect">
-          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx} defaultValue={this.state.selectedIdx}>
+          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.state.user.newsFilters.map((filter, idx) =>
               <option value={idx}><strong>{filter.name}</strong></option>
             )}
@@ -184,7 +204,7 @@ class ProfileView extends Component {
           </div>
         </form>
         <hr />
-        <p>No longer have a need for NewsWatcher? <a id="deleteLink" href="javascript:void(0)" onClick={this.handleOpenModal}>Delete your NewsWatcher Account</a></p>
+        <p>No longer have a need for NewsWatcher? <a id="deleteLink" style={{ cursor: 'pointer' }} onClick={this.handleOpenModal}>Delete your NewsWatcher Account</a></p>
         <Modal show={this.state.showModal} onHide={this.handleCloseModal}>
           <Modal.Header closeButton>
             <Modal.Title>Un-Register</Modal.Title>

@@ -30,10 +30,10 @@ class LoginView extends Component {
 
   componentDidMount() {
     if (this.props.session) {
-      //this.props.history.push("/#/news");
-      // OR try this below
-      window.location.replace(window.location.pathname + '#/news');
+      return this.props.history.replace('/#/news')
     }
+
+    return this.props.history.replace('/#/')
   }
 
   handleRegister = (event) => {
@@ -47,7 +47,7 @@ class LoginView extends Component {
       .set('Content-Type', 'application/json')
       .use(noCache)
       .end((err, res) => {
-        if (err || !res.ok || res.status != 201) {
+        if (err || !res.ok || res.status !== 201) {
           this.props.parentMsgCB({ type: "MSG_REGISTRATION_FAIL", msg: `Registration failure: ${res.body.message}` });
         } else {
           this.props.parentMsgCB({ type: "MSG_REGISTRATION_OK", msg: "Registered" });
@@ -66,7 +66,7 @@ class LoginView extends Component {
       .set('Content-Type', 'application/json')
       .use(noCache)
       .end((err, res) => {
-        if (err || !res.ok || res.status != 201) {
+        if (err || !res.ok || res.status !== 201) {
           this.props.parentMsgCB({ type: "MSG_LOGIN_FAIL", msg: `Sign in failed: ${res.body.message}` });
         } else {
           // Set the token in client side storage if the user desires
@@ -81,7 +81,6 @@ class LoginView extends Component {
             window.localStorage.removeItem("userToken");
           }
           this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
-          // window.location.replace(window.location.pathname + '#/news');
         }
       });
   }
@@ -140,7 +139,7 @@ class LoginView extends Component {
             Login
           </Button>
         </form>
-        <p>Not a NewsWatcher user? <a id="registerLink" href="javascript:void(0)" onClick={this.handleOpenRegModal}>Sign Up</a></p>
+        <p>Not a NewsWatcher user? <a id="registerLink" style={{ cursor: 'pointer' }} onClick={this.handleOpenRegModal}>Sign Up</a></p>
         <Modal show={this.state.showModal} onHide={this.handleCloseRegModal}>
           <Modal.Header closeButton>
             <Modal.Title>Register</Modal.Title>
