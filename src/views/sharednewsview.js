@@ -41,7 +41,7 @@ class SharedNewsView extends Component {
 
   componentDidMount() {
     if (!this.props.session) {
-      return this.props.history.replace('/#/')
+      return window.location.hash = "";
     }
 
     superagent.get('/api/sharednews')

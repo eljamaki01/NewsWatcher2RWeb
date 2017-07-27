@@ -30,10 +30,10 @@ class LoginView extends Component {
 
   componentDidMount() {
     if (this.props.session) {
-      return this.props.history.replace('/#/news')
+      return window.location.hash = "#news";
     }
 
-    return this.props.history.replace('/#/')
+    window.location.hash = "";
   }
 
   handleRegister = (event) => {

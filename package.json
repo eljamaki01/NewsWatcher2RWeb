@@ -29,7 +29,6 @@
     "immutability-helper": "^2.3.0",
     "joi": "^10.6.0",
     "jwt-simple": "^0.5.1",
-    "kerberos": "0.0.23",
     "mongodb": "^2.2.30",
     "morgan": "^1.8.2",
     "react": "^15.6.1",
@@ -39,8 +38,7 @@
     "react-scripts": "^1.0.10",
     "response-time": "^2.3.2",
     "superagent": "^3.5.2",
-    "superagent-no-cache": "^0.1.1",
-    "supertest": "^3.0.0"
+    "superagent-no-cache": "^0.1.1"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

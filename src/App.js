@@ -7,6 +7,7 @@ import LoginView from './views/loginview';
 import NewsView from './views/newsview';
 import SharedNewsView from './views/sharednewsview';
 import ProfileView from './views/profileview';
+import NotFound from './views/notfound';
 
 class App extends Component {
   constructor(props) {
@@ -26,17 +27,17 @@ class App extends Component {
       const tokenObject = JSON.parse(storedToken);
       this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
       setTimeout(() => {
-        window.location.replace('/#/news');
+        window.location.hash = "#news";
       }, 1000);
     } else {
-      window.location.replace('/#/');
+      window.location.hash = "";
     }
   }
 
   handleMSG = (payload) => {
     if (payload.type === "MSG_LOGIN_OK") {
       this.setState({ loggedIn: true, session: payload.data });
-      window.location.replace(window.location.pathname + '#/news');
+      window.location.hash = "#news";
     } else if (payload.type === "MSG_ACCT_DELETE_OK") {
       this.handleLogout(null);
     }
@@ -55,7 +56,7 @@ class App extends Component {
         } else {
           this.setState({ loggedIn: false, session: null, currentMsg: "Signed out" });
           window.localStorage.removeItem("userToken");
-          window.location.replace(window.location.pathname + '#/');
+          window.location.hash = "";
         }
       });
   }
@@ -83,10 +84,11 @@ class App extends Component {
           </Navbar>
           <hr />
           <Switch>
+            <Route exact path="/" render={props => <LoginView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
             <Route path="/news" render={props => <NewsView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
             <Route path="/sharednews" render={props => <SharedNewsView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
             <Route path="/profile" render={props => <ProfileView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
-            <Route path="/" render={props => <LoginView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
+            <Route component={NotFound} />
           </Switch>
         </div>
       </HashRouter>
