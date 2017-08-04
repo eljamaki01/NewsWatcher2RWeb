@@ -1,22 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 //Get rid of ones on next line that don't need!
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Checkbox, Button, Modal, Glyphicon, ButtonToolbar } from 'react-bootstrap';
+import { FormGroup, FormControl, Checkbox, Button, Modal, Glyphicon, ButtonToolbar } from 'react-bootstrap';
 // import _ from 'lodash';
 import update from 'immutability-helper';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
+import { FieldGroup } from '../utils/utils';
 import '../App.css';
-
-function FieldGroup({ id, label, help, ...props }) {
-  return (
-    <FormGroup controlId={id}>
-      <ControlLabel>{label}</ControlLabel>
-      <FormControl {...props} />
-      {help && <HelpBlock>{help}</HelpBlock>}
-    </FormGroup>
-  );
-}
 
 class ProfileView extends Component {
   constructor(props) {
@@ -229,7 +220,7 @@ class ProfileView extends Component {
 }
 
 ProfileView.propTypes = {
-  session: PropTypes.func.isRequired,
+  session: PropTypes.object.isRequired,
   parentMsgCB: PropTypes.func.isRequired
 };
 

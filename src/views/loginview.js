@@ -1,19 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Checkbox, Button, Modal, Glyphicon } from 'react-bootstrap';
+import { Checkbox, Button, Modal, Glyphicon } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
+import { FieldGroup } from '../utils/utils';
 import '../App.css';
-
-function FieldGroup({ id, glyph, label, help, ...props }) {
-  return (
-    <FormGroup controlId={id}>
-      <ControlLabel><Glyphicon glyph={glyph} /> {label}</ControlLabel>
-      <FormControl {...props} />
-      {help && <HelpBlock>{help}</HelpBlock>}
-    </FormGroup>
-  );
-}
 
 class LoginView extends Component {
   constructor(props) {
@@ -81,6 +72,7 @@ class LoginView extends Component {
             window.localStorage.removeItem("userToken");
           }
           this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
+          window.location.hash = "#news";
         }
       });
   }
@@ -139,7 +131,7 @@ class LoginView extends Component {
             Login
           </Button>
         </form>
-        <p>Not a NewsWatcher user? <a id="registerLink" style={{ cursor: 'pointer' }} onClick={this.handleOpenRegModal}>Sign Up</a></p>
+        <p>Not a NewsWatcher user? <a style={{ cursor: 'pointer' }} onClick={this.handleOpenRegModal}>Sign Up</a></p>
         <Modal show={this.state.showModal} onHide={this.handleCloseRegModal}>
           <Modal.Header closeButton>
             <Modal.Title>Register</Modal.Title>
@@ -184,7 +176,7 @@ class LoginView extends Component {
 }
 
 LoginView.propTypes = {
-  session: PropTypes.func.isRequired,
+  session: PropTypes.object.isRequired,
   parentMsgCB: PropTypes.func.isRequired
 };
 

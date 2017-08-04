@@ -3,18 +3,8 @@ import PropTypes from 'prop-types';
 import { FormGroup, FormControl, Media } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
+import { toHours } from '../utils/utils';
 import '../App.css';
-
-function toHours(date) {
-  var d1 = date;
-  var d2 = Date.now();
-  var diff = Math.floor((d2 - d1) / 3600000);
-  if (diff === 0 || diff < 2) {
-    return "1 hour ago";
-  } else {
-    return diff.toString() + " hours ago";
-  }
-}
 
 class NewsView extends Component {
   constructor(props) {
@@ -124,7 +114,7 @@ class NewsView extends Component {
 }
 
 NewsView.propTypes = {
-  session: PropTypes.func.isRequired,
+  session: PropTypes.object.isRequired,
   parentMsgCB: PropTypes.func.isRequired
 };
 

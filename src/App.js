@@ -26,9 +26,7 @@ class App extends Component {
     if (storedToken) {
       const tokenObject = JSON.parse(storedToken);
       this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
-      setTimeout(() => {
-        window.location.hash = "#news";
-      }, 1000);
+      window.location.hash = "#news";
     } else {
       window.location.hash = "";
     }
@@ -37,7 +35,6 @@ class App extends Component {
   handleMSG = (payload) => {
     if (payload.type === "MSG_LOGIN_OK") {
       this.setState({ loggedIn: true, session: payload.data });
-      window.location.hash = "#news";
     } else if (payload.type === "MSG_ACCT_DELETE_OK") {
       this.handleLogout(null);
     }
@@ -68,17 +65,17 @@ class App extends Component {
           <Navbar fluid default collapseOnSelect>
             <Navbar.Header>
               <Navbar.Brand>
-                NewsWatcher {this.state.currentMsg && <span><small id="currentMsgIndex">({this.state.currentMsg})</small></span>}
+                NewsWatcher {this.state.currentMsg && <span><small>({this.state.currentMsg})</small></span>}
               </Navbar.Brand>
               <Navbar.Toggle />
             </Navbar.Header>
             <Navbar.Collapse>
               <Nav>
-                {this.state.loggedIn && <NavItem id="newsLink" eventKey={1} ><Link to="/news" replace>News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="sharedLink" eventKey={3} style={{ cursor: 'pointer' }}><Link to="/sharednews" replace>Shared News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="profileLink" eventKey={4} style={{ cursor: 'pointer' }}><Link to="/profile" replace>Profile</Link></NavItem>}
-                {this.state.loggedIn && <NavItem id="logoutLink" eventKey={5} style={{ cursor: 'pointer' }} onClick={this.handleLogout}>Logout</NavItem>}
-                {!this.state.loggedIn && <NavItem eventKey={6} style={{ cursor: 'pointer' }}><Link to="/" replace>Login</Link></NavItem>}
+                {this.state.loggedIn && <NavItem><Link to="/news" replace>News</Link></NavItem>}
+                {this.state.loggedIn && <NavItem><Link to="/sharednews" replace>Shared News</Link></NavItem>}
+                {this.state.loggedIn && <NavItem><Link to="/profile" replace>Profile</Link></NavItem>}
+                {this.state.loggedIn && <NavItem onClick={this.handleLogout}>Logout</NavItem>}
+                {!this.state.loggedIn && <NavItem><Link to="/" replace>Login</Link></NavItem>}
               </Nav>
             </Navbar.Collapse>
           </Navbar>

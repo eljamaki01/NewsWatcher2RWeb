@@ -1,31 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
+import { FormGroup, ControlLabel, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
+import { FieldGroup, toHours } from '../utils/utils';
 import '../App.css';
-
-function toHours(date) {
-  var d1 = date;
-  var d2 = Date.now();
-  var diff = Math.floor((d2 - d1) / 3600000);
-  if (diff === 0 || diff < 2) {
-    return "1 hour ago";
-  } else {
-    return diff.toString() + " hours ago";
-  }
-}
-
-function FieldGroup({ id, glyph, label, help, ...props }) {
-  return (
-    <FormGroup controlId={id}>
-      <ControlLabel><Glyphicon glyph={glyph} /> {label}</ControlLabel>
-      <FormControl {...props} />
-      {help && <HelpBlock>{help}</HelpBlock>}
-    </FormGroup>
-  );
-}
 
 class SharedNewsView extends Component {
   constructor(props) {
@@ -126,7 +106,6 @@ class SharedNewsView extends Component {
                 <Media.Heading><b>{sharedStory.story.title}</b></Media.Heading>
                 <p>{sharedStory.story.contentSnippet}</p>
                 {sharedStory.story.source} - <span>{sharedStory.story.hours}</span>
-                {/* <a href="javascript:void(0)" ng-click="openModal($index)">Comments</a> */}
                 <a style={{ cursor: 'pointer' }} onClick={(event) => this.handleOpenModal(idx, event)}> Comments</a>
               </Media.Body>
             </Media.ListItem>
@@ -170,7 +149,7 @@ class SharedNewsView extends Component {
                     placeholder="Enter your comment"
                     onChange={this.handleCommentChange}
                   />
-                  <Button disabled={this.state.comment.length===0} bsStyle="success" bsSize="lg" block type="submit">
+                  <Button disabled={this.state.comment.length === 0} bsStyle="success" bsSize="lg" block type="submit">
                     <Glyphicon glyph="off" /> Add
                   </Button>
                 </div>
@@ -187,7 +166,7 @@ class SharedNewsView extends Component {
 }
 
 SharedNewsView.propTypes = {
-  session: PropTypes.func.isRequired,
+  session: PropTypes.object.isRequired,
   parentMsgCB: PropTypes.func.isRequired
 };
 
