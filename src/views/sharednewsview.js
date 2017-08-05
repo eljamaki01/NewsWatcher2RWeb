@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import update from 'immutability-helper';
+// import update from 'immutability-helper';
 import { FormGroup, ControlLabel, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
+import { connect } from 'react-redux'
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import { FieldGroup, toHours } from '../utils/utils';
@@ -13,8 +14,6 @@ class SharedNewsView extends Component {
 
     this.state = {
       comment: "",
-      isLoading: true,
-      news: null,
       selectedStoryIdx: 0
     };
   }
@@ -24,6 +23,7 @@ class SharedNewsView extends Component {
       return window.location.hash = "";
     }
 
+    const { dispatch } = this.props
     superagent.get('/api/sharednews')
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -32,13 +32,13 @@ class SharedNewsView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Shared News fetch failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Shared News fetch failed: ${res.body.message}` });
         } else {
           for (var i = 0; i < res.body.length; i++) {
             res.body[i].story.hours = toHours(res.body[i].story.date);
           }
-          this.setState({ news: res.body, isLoading: false });
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "Shared News fetched" });
+          dispatch({ type: 'RECEIVE_SHAREDNEWS_SUCCESS', news: res.body });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
         }
       });
   }
@@ -56,27 +56,20 @@ class SharedNewsView extends Component {
   }
 
   handleAddComment = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
-    superagent.post(`/api/sharednews/${this.state.news[this.state.selectedStoryIdx].story.storyID}/Comments`)
+    superagent.post(`/api/sharednews/${this.props.news[this.state.selectedStoryIdx].story.storyID}/Comments`)
       .send({ comment: this.state.comment })
       .set('Content-Type', 'application/json')
       .set('x-auth', this.props.session.token)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Comment add failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Comment add failed: ${res.body.message}` });
         } else {
           var storyIdx = this.state.selectedStoryIdx;
-          this.setState({
-            news: update(this.state.news, {
-              [storyIdx]: {
-                comments: {
-                  $push: [{ displayName: this.props.session.displayName, comment: this.state.comment }]
-                }
-              }
-            })
-          })
+          dispatch({ type: 'ADD_COMMENT_SUCCESS', comment: this.state.comment, displayName: this.props.session.displayName, storyIdx: storyIdx });
           this.setState({ showModal: false, comment: "" });
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "Comment added" });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Comment added" });
         }
       });
   }
@@ -86,7 +79,7 @@ class SharedNewsView extends Component {
   }
 
   render() {
-    if (this.state.isLoading) {
+    if (this.props.isLoading) {
       return (
         <h1>Loading...</h1>
       );
@@ -95,7 +88,7 @@ class SharedNewsView extends Component {
       <div>
         <h1>Shared News</h1 >
         <Media.List>
-          {this.state.news.map((sharedStory, idx) =>
+          {this.props.news.map((sharedStory, idx) =>
             <Media.ListItem>
               <Media.Left>
                 <a href={sharedStory.story.link} target="_blank">
@@ -121,53 +114,63 @@ class SharedNewsView extends Component {
             </Media.Body>
           </Media.ListItem>
         </Media.List>
-        <Modal show={this.state.showModal} onHide={this.handleCloseModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add Comment</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <form onSubmit={this.handleAddComment}>
-              <FormGroup controlId="commentList">
-                <ControlLabel><Glyphicon glyph="user" /> Comments</ControlLabel>
-                <ul style={{ height: '10em', overflow: 'auto', 'overflow-x': 'hidden' }}>
-                  {this.state.news[this.state.selectedStoryIdx].comments.map(comment =>
-                    <li>
-                      <div>
-                        <p>'{comment.comment}' - {comment.displayName} </p>
-                      </div>
-                    </li>
-                  )}
-                </ul>
-              </FormGroup>
-              {this.state.news[this.state.selectedStoryIdx].comments.length < 30 &&
-                <div>
-                  <FieldGroup
-                    id="formControlsComment"
-                    type="text"
-                    glyph="user"
-                    label="Comment"
-                    placeholder="Enter your comment"
-                    onChange={this.handleCommentChange}
-                  />
-                  <Button disabled={this.state.comment.length === 0} bsStyle="success" bsSize="lg" block type="submit">
-                    <Glyphicon glyph="off" /> Add
+        {this.props.news.length > 0 &&
+          <Modal show={this.state.showModal} onHide={this.handleCloseModal}>
+            <Modal.Header closeButton>
+              <Modal.Title>Add Comment</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <form onSubmit={this.handleAddComment}>
+                <FormGroup controlId="commentList">
+                  <ControlLabel><Glyphicon glyph="user" /> Comments</ControlLabel>
+                  <ul style={{ height: '10em', overflow: 'auto', 'overflow-x': 'hidden' }}>
+                    {this.props.news[this.state.selectedStoryIdx].comments.map(comment =>
+                      <li>
+                        <div>
+                          <p>'{comment.comment}' - {comment.displayName} </p>
+                        </div>
+                      </li>
+                    )}
+                  </ul>
+                </FormGroup>
+                {this.props.news[this.state.selectedStoryIdx].comments.length < 30 &&
+                  <div>
+                    <FieldGroup
+                      id="formControlsComment"
+                      type="text"
+                      glyph="user"
+                      label="Comment"
+                      placeholder="Enter your comment"
+                      onChange={this.handleCommentChange}
+                    />
+                    <Button disabled={this.state.comment.length === 0} bsStyle="success" bsSize="lg" block type="submit">
+                      <Glyphicon glyph="off" /> Add
                   </Button>
-                </div>
-              }
-            </form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Close</Button>
-          </Modal.Footer>
-        </Modal>
+                  </div>
+                }
+              </form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Close</Button>
+            </Modal.Footer>
+          </Modal>
+        }
       </div>
     );
   }
 }
 
 SharedNewsView.propTypes = {
-  session: PropTypes.object.isRequired,
-  parentMsgCB: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired
 };
 
-export default SharedNewsView;
+const mapStateToProps = state => {
+  return {
+    session: state.app.session,
+    news: state.sharednews.news,
+    isLoading: state.sharednews.isLoading
+  }
+}
+
+export default connect(mapStateToProps)(SharedNewsView)
+

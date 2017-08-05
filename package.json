@@ -34,8 +34,10 @@
     "react": "^15.6.1",
     "react-bootstrap": "^0.31.1",
     "react-dom": "^15.6.1",
+    "react-redux": "^5.0.5",
     "react-router-dom": "^4.1.2",
     "react-scripts": "^1.0.10",
+    "redux": "^3.7.2",
     "response-time": "^2.3.2",
     "superagent": "^3.5.2",
     "superagent-no-cache": "^0.1.1"

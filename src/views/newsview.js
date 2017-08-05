@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { FormGroup, FormControl, Media } from 'react-bootstrap';
+import { connect } from 'react-redux'
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import { toHours } from '../utils/utils';
@@ -11,9 +12,7 @@ class NewsView extends Component {
     super(props);
 
     this.state = {
-      isLoading: true,
-      selectedIdx: 0,
-      newsFilters: null
+      selectedIdx: 0
     };
   }
 
@@ -22,6 +21,9 @@ class NewsView extends Component {
       return window.location.hash = "";
     }
 
+    const { dispatch } = this.props
+    // dispatch(fetchUserNewsFilters(this.props.session.userId))
+    // dispatch({ type: 'REQUEST_NEWS', userId: this.props.session.userId });
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -30,15 +32,18 @@ class NewsView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
+          // this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `News fetch failed: ${res.body.message}` });
         } else {
           for (var i = 0; i < res.body.newsFilters.length; i++) {
             for (var j = 0; j < res.body.newsFilters[i].newsStories.length; j++) {
               res.body.newsFilters[i].newsStories[j].hours = toHours(res.body.newsFilters[i].newsStories[j].date);
             }
           }
-          this.setState({ newsFilters: res.body.newsFilters, isLoading: false });
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "News fetched" });
+          // this.setState({ newsFilters: res.body.newsFilters, isLoading: false });
+          // this.props.parentMsgCB({ type: "MSG_OK", msg: "News fetched" });
+          dispatch({ type: 'RECEIVE_NEWS_SUCCESS', newsFilters: res.body.newsFilters });
+          dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
         }
       });
   }
@@ -48,22 +53,25 @@ class NewsView extends Component {
   }
 
   handleShareStory = (index, event) => {
+    const { dispatch } = this.props
     event.preventDefault();
     superagent.post('/api/sharednews')
-      .send(this.state.newsFilters[this.state.selectedIdx].newsStories[index])
+      .send(this.props.newsFilters[this.state.selectedIdx].newsStories[index])
       .set('Content-Type', 'application/json')
       .set('x-auth', this.props.session.token)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Share of story failed: ${res.body.message}` });
+          // this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Share of story failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Share of story failed: ${res.body.message}` });
         } else {
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "Story shared" });
+          // this.props.parentMsgCB({ type: "MSG_OK", msg: "Story shared" });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Story shared" });
         }
       });
   }
 
   render() {
-    if (this.state.isLoading) {
+    if (this.props.isLoading) {
       return (
         <h1>Loading...</h1>
       );
@@ -73,14 +81,14 @@ class NewsView extends Component {
         <h1>News</h1 >
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
-            {this.state.newsFilters.map((filter, idx) =>
+            {this.props.newsFilters.map((filter, idx) =>
               <option value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
         </FormGroup>
         <hr />
         <Media.List>
-          {this.state.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
+          {this.props.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
             <Media.ListItem>
               <Media.Left>
                 <a href={story.link} target="_blank">
@@ -114,8 +122,15 @@ class NewsView extends Component {
 }
 
 NewsView.propTypes = {
-  session: PropTypes.object.isRequired,
-  parentMsgCB: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired
 };
 
-export default NewsView;
+const mapStateToProps = state => {
+  return {
+    session: state.app.session,
+    newsFilters: state.news.newsFilters,
+    isLoading: state.news.isLoading
+  }
+}
+
+export default connect(mapStateToProps)(NewsView)

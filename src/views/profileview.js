@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-//Get rid of ones on next line that don't need!
 import { FormGroup, FormControl, Checkbox, Button, Modal, Glyphicon, ButtonToolbar } from 'react-bootstrap';
-// import _ from 'lodash';
-import update from 'immutability-helper';
+import { connect } from 'react-redux'
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import { FieldGroup } from '../utils/utils';
@@ -14,10 +12,8 @@ class ProfileView extends Component {
     super(props);
 
     this.state = {
-      isLoading: true,
       deleteOK: false,
       selectedIdx: 0,
-      user: null
     };
   }
 
@@ -26,6 +22,7 @@ class ProfileView extends Component {
       return window.location.hash = "";
     }
 
+    const { dispatch } = this.props
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -34,52 +31,40 @@ class ProfileView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Profile fetch failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Profile fetch failed: ${res.body.message}` });
         } else {
           for (var i = 0; i < res.body.newsFilters.length; i++) {
             res.body.newsFilters[i].keywordsStr = res.body.newsFilters[i].keyWords.join(',');
           }
-          this.setState({ user: res.body, isLoading: false });
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "Profile fetched" });
+          dispatch({ type: 'RECEIVE_PROFILE_SUCCESS', user: res.body });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Profile fetched" });
         }
       });
   }
 
   handleUnRegister = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
     superagent.delete(`/api/users/${this.props.session.userId}`)
-      .send(this.state.user)
+      .send(this.props.user)
       .set('Content-Type', 'application/json')
       .set('x-auth', this.props.session.token)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Account delete failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Account delete failed: ${res.body.message}` });
         } else {
-          this.props.parentMsgCB({ type: "MSG_ACCT_DELETE_OK", msg: "Account deleted" });
+          this.props.appLogoutCB();
+          dispatch({ type: 'MSG_DISPLAY', msg: "Account deleted" });
         }
       });
   }
 
   handleNameChange = (event) => {
-    var filterIdx = this.state.selectedIdx;
-    this.setState({
-      user: update(this.state.user, {
-        newsFilters: {
-          [filterIdx]: { name: { $set: event.target.value } }
-        }
-      })
-    })
+    this.props.dispatch({ type: 'ALTER_FILTER_NAME', filterIdx: this.state.selectedIdx, value: event.target.value });
   }
 
   handleKeywordsChange = (event) => {
-    var filterIdx = this.state.selectedIdx;
-    this.setState({
-      user: update(this.state.user, {
-        newsFilters: {
-          [filterIdx]: { keywordsStr: { $set: event.target.value }, keyWords: { $set: event.target.value.split(',') } }
-        }
-      })
-    })
+    this.props.dispatch({ type: 'ALTER_FILTER_KEYWORDS', filterIdx: this.state.selectedIdx, value: event.target.value });
   }
 
   handleOpenModal = (event) => {
@@ -95,55 +80,36 @@ class ProfileView extends Component {
   }
 
   handleAdd = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
-    if (this.state.user.newsFilters.length === 5) {
-      this.props.parentMsgCB({ type: "MSG_OK", msg: "No more newsFilters allowed" });
+    if (this.props.user.newsFilters.length === 5) {
+      dispatch({ type: 'MSG_DISPLAY', msg: "No more newsFilters allowed" });
     } else {
-      var len = this.state.user.newsFilters.length;
-      this.setState({
-        user: update(this.state.user, {
-          newsFilters: {
-            $push: [{
-              name: 'New Filter',
-              keyWords: ["Keyword"],
-              keywordsStr: "Keyword",
-              enableAlert: false,
-              alertFrequency: 0,
-              enableAutoDelete: false,
-              deleteTime: 0,
-              timeOfLastScan: 0
-            }]
-          }
-        })
-      })
+      var len = this.props.user.newsFilters.length;
+      dispatch({ type: 'ADD_FILTER' });
       this.setState({ selectedIdx: len });
     }
   }
 
   handleDelete = (event) => {
     event.preventDefault();
-    this.setState({
-      user: update(this.state.user, {
-        newsFilters: {
-          $splice: [[this.state.selectedIdx, 1]]
-        }
-      })
-    })
+    this.props.dispatch({ type: 'DELETE_FILTER', selectedIdx: this.state.selectedIdx });
     this.setState({ selectedIdx: 0 });
   }
 
   handleSave = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
     superagent.put(`/api/users/${this.props.session.userId}`)
-      .send(this.state.user)
+      .send(this.props.user)
       .set('Content-Type', 'application/json')
       .set('x-auth', this.props.session.token)
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Profile save failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Profile save failed: ${res.body.message}` });
         } else {
-          this.props.parentMsgCB({ type: "MSG_OK", msg: "Profile saved" });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Profile saved" });
         }
       });
   }
@@ -153,7 +119,7 @@ class ProfileView extends Component {
   }
 
   render() {
-    if (this.state.isLoading) {
+    if (this.props.isLoading) {
       return (
         <h1>Loading...</h1>
       );
@@ -163,7 +129,7 @@ class ProfileView extends Component {
         <h1>Profile: News Filters</h1>
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
-            {this.state.user.newsFilters.map((filter, idx) =>
+            {this.props.user.newsFilters.map((filter, idx) =>
               <option value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
@@ -176,7 +142,7 @@ class ProfileView extends Component {
             label="Name"
             placeholder="NewFilter"
             onChange={this.handleNameChange}
-            value={this.state.user.newsFilters[this.state.selectedIdx].name}
+            value={this.props.user.newsFilters[this.state.selectedIdx].name}
           />
           <FieldGroup
             id="formControlsKeywords"
@@ -184,7 +150,7 @@ class ProfileView extends Component {
             label="Keywords"
             placeholder="Keywords"
             onChange={this.handleKeywordsChange}
-            value={this.state.user.newsFilters[this.state.selectedIdx].keywordsStr}
+            value={this.props.user.newsFilters[this.state.selectedIdx].keywordsStr}
           />
           <div class="btn-group btn-group-justified" role="group" aria-label="...">
             <ButtonToolbar>
@@ -220,8 +186,16 @@ class ProfileView extends Component {
 }
 
 ProfileView.propTypes = {
-  session: PropTypes.object.isRequired,
-  parentMsgCB: PropTypes.func.isRequired
+  appLogoutCB: PropTypes.func.isRequired,
+  dispatch: PropTypes.func.isRequired
 };
 
-export default ProfileView;
+const mapStateToProps = state => {
+  return {
+    session: state.app.session,
+    user: state.profile.user,
+    isLoading: state.profile.isLoading
+  }
+}
+
+export default connect(mapStateToProps)(ProfileView)

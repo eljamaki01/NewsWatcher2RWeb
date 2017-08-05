@@ -3,6 +3,7 @@ import superagent from 'superagent';
 import './App.css';
 import { HashRouter, Switch, Route, Link } from 'react-router-dom'
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
+import { connect } from 'react-redux'
 import LoginView from './views/loginview';
 import NewsView from './views/newsview';
 import SharedNewsView from './views/sharednewsview';
@@ -10,48 +11,40 @@ import ProfileView from './views/profileview';
 import NotFound from './views/notfound';
 
 class App extends Component {
-  constructor(props) {
-    super(props);
+  // constructor(props) {
+  //   super(props);
 
-    this.state = {
-      loggedIn: false,
-      session: null,
-      currentMsg: ""
-    };
-  }
+  //   this.state = {
+  //     loggedIn: false,
+  //     session: null,
+  //     currentMsg: ""
+  //   };
+  // }
 
   componentDidMount() {
     // Check for token in HTML5 client side local storage
     const storedToken = window.localStorage.getItem("userToken");
     if (storedToken) {
       const tokenObject = JSON.parse(storedToken);
-      this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
+      // this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
+      this.props.dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${tokenObject.displayName}`, session: tokenObject });
       window.location.hash = "#news";
     } else {
       window.location.hash = "";
     }
   }
 
-  handleMSG = (payload) => {
-    if (payload.type === "MSG_LOGIN_OK") {
-      this.setState({ loggedIn: true, session: payload.data });
-    } else if (payload.type === "MSG_ACCT_DELETE_OK") {
-      this.handleLogout(null);
-    }
-
-    this.setState({ currentMsg: payload.msg });
-  }
-
   handleLogout = (event) => {
+    const { dispatch } = this.props
     event && event.preventDefault();
-    superagent.delete(`/api/sessions/${this.state.session.userId}`)
+    superagent.delete(`/api/sessions/${this.props.session.userId}`)
       .set('Content-Type', 'application/json')
-      .set('x-auth', this.state.session.token)
+      .set('x-auth', this.props.session.token)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          this.setState({ currentMsg: `Sign out failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Sign out failed: ${res.body.message}` });
         } else {
-          this.setState({ loggedIn: false, session: null, currentMsg: "Signed out" });
+          dispatch({ type: 'DELETE_TOKEN_SUCCESS', msg: "Signed out" });
           window.localStorage.removeItem("userToken");
           window.location.hash = "";
         }
@@ -65,26 +58,26 @@ class App extends Component {
           <Navbar fluid default collapseOnSelect>
             <Navbar.Header>
               <Navbar.Brand>
-                NewsWatcher {this.state.currentMsg && <span><small>({this.state.currentMsg})</small></span>}
+                NewsWatcher {this.props.currentMsg && <span><small>({this.props.currentMsg})</small></span>}
               </Navbar.Brand>
               <Navbar.Toggle />
             </Navbar.Header>
             <Navbar.Collapse>
               <Nav>
-                {this.state.loggedIn && <NavItem><Link to="/news" replace>News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem><Link to="/sharednews" replace>Shared News</Link></NavItem>}
-                {this.state.loggedIn && <NavItem><Link to="/profile" replace>Profile</Link></NavItem>}
-                {this.state.loggedIn && <NavItem onClick={this.handleLogout}>Logout</NavItem>}
-                {!this.state.loggedIn && <NavItem><Link to="/" replace>Login</Link></NavItem>}
+                {this.props.loggedIn && <NavItem><Link to="/news" replace>News</Link></NavItem>}
+                {this.props.loggedIn && <NavItem><Link to="/sharednews" replace>Shared News</Link></NavItem>}
+                {this.props.loggedIn && <NavItem><Link to="/profile" replace>Profile</Link></NavItem>}
+                {this.props.loggedIn && <NavItem onClick={this.handleLogout}>Logout</NavItem>}
+                {!this.props.loggedIn && <NavItem><Link to="/" replace>Login</Link></NavItem>}
               </Nav>
             </Navbar.Collapse>
           </Navbar>
           <hr />
           <Switch>
-            <Route exact path="/" render={props => <LoginView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
-            <Route path="/news" render={props => <NewsView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
-            <Route path="/sharednews" render={props => <SharedNewsView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
-            <Route path="/profile" render={props => <ProfileView session={this.state.session} parentMsgCB={this.handleMSG} {...props} />} />
+            <Route exact path="/" component={LoginView} />
+            <Route path="/news" component={NewsView} />
+            <Route path="/sharednews" component={SharedNewsView} />
+            <Route path="/profile" render={props => <ProfileView appLogoutCB={this.handleLogout} {...props} />} />
             <Route component={NotFound} />
           </Switch>
         </div>
@@ -93,4 +86,13 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = state => {
+  return {
+    loggedIn: state.app.loggedIn,
+    session: state.app.session,
+    currentMsg: state.app.currentMsg
+  }
+}
+
+// export default App;
+export default connect(mapStateToProps)(App)

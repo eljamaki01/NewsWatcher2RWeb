@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Checkbox, Button, Modal, Glyphicon } from 'react-bootstrap';
+import { connect } from 'react-redux'
 import superagent from 'superagent';
 import noCache from 'superagent-no-cache';
 import { FieldGroup } from '../utils/utils';
@@ -28,6 +29,7 @@ class LoginView extends Component {
   }
 
   handleRegister = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
     superagent.post("/api/users")
       .send({
@@ -39,15 +41,16 @@ class LoginView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          this.props.parentMsgCB({ type: "MSG_REGISTRATION_FAIL", msg: `Registration failure: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Registration failure: ${res.body.message}` });
         } else {
-          this.props.parentMsgCB({ type: "MSG_REGISTRATION_OK", msg: "Registered" });
+          dispatch({ type: 'MSG_DISPLAY', msg: "Registered" });
           this.setState({ showModal: false });
         }
       });
   }
 
   handleLogin = (event) => {
+    const { dispatch } = this.props
     event.preventDefault();
     superagent.post("/api/sessions")
       .send({
@@ -58,7 +61,8 @@ class LoginView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          this.props.parentMsgCB({ type: "MSG_LOGIN_FAIL", msg: `Sign in failed: ${res.body.message}` });
+          // this.props.parentMsgCB({ type: "MSG_LOGIN_FAIL", msg: `Sign in failed: ${res.body.message}` });
+          dispatch({ type: 'MSG_DISPLAY', msg: `Sign in failed: ${res.body.message}` });
         } else {
           // Set the token in client side storage if the user desires
           if (this.state.remeberMe) {
@@ -71,7 +75,9 @@ class LoginView extends Component {
           } else {
             window.localStorage.removeItem("userToken");
           }
-          this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
+          // this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
+          dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${res.body.displayName}`, session: res.body });
+          // dispatch({ type: 'MSG_DISPLAY', msg: `Signed in as ${res.body.displayName}` });
           window.location.hash = "#news";
         }
       });
@@ -176,8 +182,13 @@ class LoginView extends Component {
 }
 
 LoginView.propTypes = {
-  session: PropTypes.object.isRequired,
-  parentMsgCB: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired
 };
 
-export default LoginView;
+const mapStateToProps = state => {
+  return {
+    session: state.app.session
+  }
+}
+
+export default connect(mapStateToProps)(LoginView)
