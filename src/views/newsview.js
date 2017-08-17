@@ -22,8 +22,6 @@ class NewsView extends Component {
     }
 
     const { dispatch } = this.props
-    // dispatch(fetchUserNewsFilters(this.props.session.userId))
-    // dispatch({ type: 'REQUEST_NEWS', userId: this.props.session.userId });
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -32,7 +30,6 @@ class NewsView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 200) {
-          // this.props.parentMsgCB({ type: "MSG_FAIL", msg: `News fetch failed: ${res.body.message}` });
           dispatch({ type: 'MSG_DISPLAY', msg: `News fetch failed: ${res.body.message}` });
         } else {
           for (var i = 0; i < res.body.newsFilters.length; i++) {
@@ -40,8 +37,6 @@ class NewsView extends Component {
               res.body.newsFilters[i].newsStories[j].hours = toHours(res.body.newsFilters[i].newsStories[j].date);
             }
           }
-          // this.setState({ newsFilters: res.body.newsFilters, isLoading: false });
-          // this.props.parentMsgCB({ type: "MSG_OK", msg: "News fetched" });
           dispatch({ type: 'RECEIVE_NEWS_SUCCESS', newsFilters: res.body.newsFilters });
           dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
         }
@@ -61,10 +56,8 @@ class NewsView extends Component {
       .set('x-auth', this.props.session.token)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          // this.props.parentMsgCB({ type: "MSG_FAIL", msg: `Share of story failed: ${res.body.message}` });
           dispatch({ type: 'MSG_DISPLAY', msg: `Share of story failed: ${res.body.message}` });
         } else {
-          // this.props.parentMsgCB({ type: "MSG_OK", msg: "Story shared" });
           dispatch({ type: 'MSG_DISPLAY', msg: "Story shared" });
         }
       });

@@ -61,7 +61,6 @@ class LoginView extends Component {
       .use(noCache)
       .end((err, res) => {
         if (err || !res.ok || res.status !== 201) {
-          // this.props.parentMsgCB({ type: "MSG_LOGIN_FAIL", msg: `Sign in failed: ${res.body.message}` });
           dispatch({ type: 'MSG_DISPLAY', msg: `Sign in failed: ${res.body.message}` });
         } else {
           // Set the token in client side storage if the user desires
@@ -75,9 +74,7 @@ class LoginView extends Component {
           } else {
             window.localStorage.removeItem("userToken");
           }
-          // this.props.parentMsgCB({ type: "MSG_LOGIN_OK", msg: `Signed in as ${res.body.displayName}`, data: res.body });
           dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${res.body.displayName}`, session: res.body });
-          // dispatch({ type: 'MSG_DISPLAY', msg: `Signed in as ${res.body.displayName}` });
           window.location.hash = "#news";
         }
       });
@@ -105,6 +102,47 @@ class LoginView extends Component {
 
   handleCloseRegModal = (event) => {
     this.setState({ showModal: false });
+  }
+
+  _renderRegisterModal = () => {
+    return (<Modal show={this.state.showModal} onHide={this.handleCloseRegModal}>
+      <Modal.Header closeButton>
+        <Modal.Title>Register</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <form onSubmit={this.handleRegister}>
+          <FieldGroup
+            id="formControlsName"
+            type="text"
+            glyph="user"
+            label="Display Name"
+            placeholder="Enter display name"
+            onChange={this.handleNameChange}
+          />
+          <FieldGroup
+            id="formControlsEmail"
+            type="email"
+            glyph="user"
+            label="Email Address"
+            placeholder="Enter email"
+            onChange={this.handleEmailChange}
+          />
+          <FieldGroup
+            id="formControlsPassword"
+            glyph="eye-open"
+            label="Password"
+            type="password"
+            onChange={this.handlePasswordChange}
+          />
+          <Button bsStyle="success" bsSize="lg" block type="submit">
+            <Glyphicon glyph="off" /> Register
+              </Button>
+        </form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
+      </Modal.Footer>
+    </Modal>)
   }
 
   render() {
@@ -138,44 +176,7 @@ class LoginView extends Component {
           </Button>
         </form>
         <p>Not a NewsWatcher user? <a style={{ cursor: 'pointer' }} onClick={this.handleOpenRegModal}>Sign Up</a></p>
-        <Modal show={this.state.showModal} onHide={this.handleCloseRegModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Register</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <form onSubmit={this.handleRegister}>
-              <FieldGroup
-                id="formControlsName"
-                type="text"
-                glyph="user"
-                label="Display Name"
-                placeholder="Enter display name"
-                onChange={this.handleNameChange}
-              />
-              <FieldGroup
-                id="formControlsEmail"
-                type="email"
-                glyph="user"
-                label="Email Address"
-                placeholder="Enter email"
-                onChange={this.handleEmailChange}
-              />
-              <FieldGroup
-                id="formControlsPassword"
-                glyph="eye-open"
-                label="Password"
-                type="password"
-                onChange={this.handlePasswordChange}
-              />
-              <Button bsStyle="success" bsSize="lg" block type="submit">
-                <Glyphicon glyph="off" /> Register
-              </Button>
-            </form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
-          </Modal.Footer>
-        </Modal>
+        {this._renderRegisterModal()}
       </div>
     );
   }
