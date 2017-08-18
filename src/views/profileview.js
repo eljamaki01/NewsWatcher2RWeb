@@ -23,6 +23,7 @@ class ProfileView extends Component {
     }
 
     const { dispatch } = this.props
+    dispatch({ type: 'REQUEST_PROFILE' });    
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -121,7 +122,7 @@ class ProfileView extends Component {
   render() {
     if (this.props.isLoading) {
       return (
-        <h1>Loading...</h1>
+        <h1>Loading profile...</h1>
       );
     }
     return (

@@ -13,20 +13,20 @@ var config = require('../config');
 // The JWT Simple package will throw exceptions
 //
 module.exports.checkAuth = function (req, res, next) {
-    if (req.headers['x-auth']) {
-        try {
-            req.auth = jwt.decode(req.headers['x-auth'], config.JWT_SECRET);
+  if (req.headers['x-auth']) {
+    try {
+      req.auth = jwt.decode(req.headers['x-auth'], config.JWT_SECRET);
 
-            // if (req.auth && req.auth.authorized && req.auth.userId && req.auth.sessionIP===req.ip && req.auth.sessionUA===req.headers['user-agent']) {
-            if (req.auth && req.auth.authorized && req.auth.userId) {
-                return next();
-            } else {
-                return next(new Error('User is not logged in.'));
-            }
-        } catch (err) {
-            return next(err);
-        }
-    } else {
+      // if (req.auth && req.auth.authorized && req.auth.userId && req.auth.sessionIP===req.ip && req.auth.sessionUA===req.headers['user-agent']) {
+      if (req.auth && req.auth.authorized && req.auth.userId) {
+        return next();
+      } else {
         return next(new Error('User is not logged in.'));
+      }
+    } catch (err) {
+      return next(err);
     }
+  } else {
+    return next(new Error('User is not logged in.'));
+  }
 };

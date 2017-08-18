@@ -22,6 +22,7 @@ class NewsView extends Component {
     }
 
     const { dispatch } = this.props
+    dispatch({ type: 'REQUEST_NEWS' });
     superagent.get(`/api/users/${this.props.session.userId}`)
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -66,7 +67,7 @@ class NewsView extends Component {
   render() {
     if (this.props.isLoading) {
       return (
-        <h1>Loading...</h1>
+        <h1>Loading news...</h1>
       );
     }
     return (

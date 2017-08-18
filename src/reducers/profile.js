@@ -7,6 +7,11 @@ const initialState = {
 
 const news = (state = initialState, action) => {
   switch (action.type) {
+    case 'REQUEST_PROFILE':
+    return {
+      isLoading: true,
+      user: []
+    }
     case 'RECEIVE_PROFILE_SUCCESS':
       return {
         // ...state,

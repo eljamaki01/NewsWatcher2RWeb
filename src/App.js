@@ -6,20 +6,12 @@ import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import { connect } from 'react-redux'
 import LoginView from './views/loginview';
 import NewsView from './views/newsview';
+import HomeNewsView from './views/homenewsview';
 import SharedNewsView from './views/sharednewsview';
 import ProfileView from './views/profileview';
 import NotFound from './views/notfound';
 
 class App extends Component {
-  // constructor(props) {
-  //   super(props);
-
-  //   this.state = {
-  //     loggedIn: false,
-  //     session: null,
-  //     currentMsg: ""
-  //   };
-  // }
 
   componentDidMount() {
     // Check for token in HTML5 client side local storage
@@ -28,9 +20,9 @@ class App extends Component {
       const tokenObject = JSON.parse(storedToken);
       // this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
       this.props.dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${tokenObject.displayName}`, session: tokenObject });
-      window.location.hash = "#news";
+      // window.location.hash = "#news";
     } else {
-      window.location.hash = "";
+      // window.location.hash = "";
     }
   }
 
@@ -64,17 +56,19 @@ class App extends Component {
             </Navbar.Header>
             <Navbar.Collapse>
               <Nav>
-                {this.props.loggedIn && <NavItem><Link to="/news" replace>News</Link></NavItem>}
+                {<NavItem><Link to="/" replace>Home Page News</Link></NavItem>}
+                {this.props.loggedIn && <NavItem><Link to="/news" replace>My News</Link></NavItem>}
                 {this.props.loggedIn && <NavItem><Link to="/sharednews" replace>Shared News</Link></NavItem>}
                 {this.props.loggedIn && <NavItem><Link to="/profile" replace>Profile</Link></NavItem>}
                 {this.props.loggedIn && <NavItem onClick={this.handleLogout}>Logout</NavItem>}
-                {!this.props.loggedIn && <NavItem><Link to="/" replace>Login</Link></NavItem>}
+                {!this.props.loggedIn && <NavItem><Link to="/login" replace>Login</Link></NavItem>}
               </Nav>
             </Navbar.Collapse>
           </Navbar>
           <hr />
           <Switch>
-            <Route exact path="/" component={LoginView} />
+            <Route exact path="/" component={HomeNewsView} />
+            <Route path="/login" component={LoginView} />
             <Route path="/news" component={NewsView} />
             <Route path="/sharednews" component={SharedNewsView} />
             <Route path="/profile" render={props => <ProfileView appLogoutCB={this.handleLogout} {...props} />} />

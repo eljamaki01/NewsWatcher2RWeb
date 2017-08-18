@@ -20,13 +20,13 @@ class LoginView extends Component {
     };
   }
 
-  componentDidMount() {
-    if (this.props.session) {
-      return window.location.hash = "#news";
-    }
+  // componentDidMount() {
+  //   if (this.props.session) {
+  //     return window.location.hash = "#news";
+  //   }
 
-    window.location.hash = "";
-  }
+  //   window.location.hash = "";
+  // }
 
   handleRegister = (event) => {
     const { dispatch } = this.props

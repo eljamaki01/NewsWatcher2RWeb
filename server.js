@@ -5,6 +5,7 @@
 //
 // "require" statements to bring in needed Node Modules
 //
+require('ignore-styles')
 var express = require('express'); // For route handlers and templates to serve up.
 var path = require('path'); // Populating the path property of the request
 var logger = require('morgan'); // HTTP request logging
@@ -20,6 +21,13 @@ var config = require('./config');
 var users = require('./routes/users');
 var session = require('./routes/session');
 var sharedNews = require('./routes/sharedNews');
+var homeNews = require('./routes/homeNews');
+
+require('babel-register')({
+  ignore: /\/(build|node_modules)\//,
+  presets: ['env', 'react-app']
+})
+//require('babel-register')({ ignore: /\/(build|node_modules)\//, presets: ['react-app'] })
 
 var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
@@ -58,6 +66,11 @@ app.use(bodyParser.json({ limit: '100kb' }));
 
 // This middleware takes any query string key/value pairs and sticks them in the body property
 //app.use(bodyParser.urlencoded({ extended: false }));
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  // console.log("HERE HERE HERE");
+});
 
 // Simplifies the serving up of static content such as HTML, images, CSS files, and JavaScript files
 //app.use(express.static(path.join(__dirname, 'static')));
@@ -110,15 +123,16 @@ app.use(function (req, res, next) {
 // app.get('/', function(req, res) {
 //     res.render('index.html')
 // });
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// app.get('/', function (req, res) {
+//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 //
 // Rest API routes
 app.use('/api/users', users);
 app.use('/api/sessions', session);
 app.use('/api/sharednews', sharedNews);
+app.use('/api/homenews', homeNews);
 
 //
 // Code for running CPU profiling and also memory heap dumps to help find memory leaks

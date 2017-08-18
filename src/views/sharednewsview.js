@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import update from 'immutability-helper';
 import { FormGroup, ControlLabel, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
 import { connect } from 'react-redux'
 import superagent from 'superagent';
@@ -24,6 +23,7 @@ class SharedNewsView extends Component {
     }
 
     const { dispatch } = this.props
+    dispatch({ type: 'REQUEST_SHAREDNEWS' });        
     superagent.get('/api/sharednews')
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -41,10 +41,6 @@ class SharedNewsView extends Component {
           dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
         }
       });
-  }
-
-  handleChangeFilter = (event) => {
-    this.setState({ selectedIdx: parseInt(event.target.value, 10) });
   }
 
   handleOpenModal = (index, event) => {
@@ -81,7 +77,7 @@ class SharedNewsView extends Component {
   render() {
     if (this.props.isLoading) {
       return (
-        <h1>Loading...</h1>
+        <h1>Loading shared news...</h1>
       );
     }
     return (

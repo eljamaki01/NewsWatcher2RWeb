@@ -1,21 +1,19 @@
 const initialState = {
   isLoading: true,
-  newsFilters: null
+  news: null
 }
 
 const news = (state = initialState, action) => {
   switch (action.type) {
-    case 'REQUEST_NEWS':
+    case 'REQUEST_HOMENEWS':
       return {
-        // ...state,
         isLoading: true,
-        newsFilters: []
+        news: []
       }
-    case 'RECEIVE_NEWS_SUCCESS':
+    case 'RECEIVE_HOMENEWS_SUCCESS':
       return {
-        // ...state,
         isLoading: false,
-        newsFilters: action.newsFilters,
+        news: action.news,
       }
     default:
       return state
