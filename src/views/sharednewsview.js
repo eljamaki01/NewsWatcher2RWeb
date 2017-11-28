@@ -85,7 +85,7 @@ class SharedNewsView extends Component {
         <h1>Shared News</h1 >
         <Media.List>
           {this.props.news.map((sharedStory, idx) =>
-            <Media.ListItem>
+            <Media.ListItem key={idx}>
               <Media.Left>
                 <a href={sharedStory.story.link} target="_blank">
                   <img alt="" className="media-object" src={sharedStory.story.imageUrl} />
@@ -99,7 +99,7 @@ class SharedNewsView extends Component {
               </Media.Body>
             </Media.ListItem>
           )}
-          <Media.ListItem>
+          <Media.ListItem key={999}>
             <Media.Left>
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />

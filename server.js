@@ -5,7 +5,6 @@
 //
 // "require" statements to bring in needed Node Modules
 //
-require('ignore-styles')
 var express = require('express'); // For route handlers and templates to serve up.
 var path = require('path'); // Populating the path property of the request
 var logger = require('morgan'); // HTTP request logging
@@ -16,18 +15,14 @@ var assert = require('assert'); // assert testing of values
 var helmet = require('helmet'); // Helmet module for HTTP header hack mitigations
 var RateLimit = require('express-rate-limit'); // IP based rate limiter
 var csp = require('helmet-csp');
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
-var config = require('./config');
 var users = require('./routes/users');
 var session = require('./routes/session');
 var sharedNews = require('./routes/sharedNews');
 var homeNews = require('./routes/homeNews');
-
-require('babel-register')({
-  ignore: /\/(build|node_modules)\//,
-  presets: ['env', 'react-app']
-})
-//require('babel-register')({ ignore: /\/(build|node_modules)\//, presets: ['react-app'] })
 
 var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
@@ -94,7 +89,7 @@ var db = {};
 var MongoClient = require('mongodb').MongoClient;
 
 //Use connect method to connect to the Server
-MongoClient.connect(config.MONGODB_CONNECT_URL, function (err, dbConn) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, dbConn) {
   assert.equal(null, err);
   db.dbConnection = dbConn;
   db.collection = dbConn.collection('newswatcher');

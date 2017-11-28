@@ -154,7 +154,7 @@ class LoginView extends Component {
       <div>
         <form onSubmit={this.handleLogin}>
           <FieldGroup
-            id="formControlsEmail"
+            id="formControlsEmail2"
             type="email"
             glyph="user"
             label="Email Address"
@@ -162,7 +162,7 @@ class LoginView extends Component {
             onChange={this.handleEmailChange}
           />
           <FieldGroup
-            id="formControlsPassword"
+            id="formControlsPassword2"
             glyph="eye-open"
             label="Password"
             type="password"

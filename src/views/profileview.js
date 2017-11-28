@@ -131,7 +131,7 @@ class ProfileView extends Component {
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.props.user.newsFilters.map((filter, idx) =>
-              <option value={idx}><strong>{filter.name}</strong></option>
+               <option key={idx} value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
         </FormGroup>

@@ -11,7 +11,6 @@ var bcrypt = require('bcryptjs');
 var async = require('async');
 var joi = require('joi'); // For data validation
 var authHelper = require('./authHelper');
-var config = require('../config');
 var ObjectId = require('mongodb').ObjectID;
 
 var router = express.Router();
@@ -139,7 +138,7 @@ router.put('/:id', authHelper.checkAuth, function (req, res, next) {
         return next(new Error('Invalid request for account deletion'));
 	
     // Limit the number of newsFilters
-    if (req.body.newsFilters.length > config.MAX_FILTERS)
+    if (req.body.newsFilters.length > process.env.MAX_FILTERS)
         return next(new Error('Too many news newsFilters'));
         
     // clear out leading and trailing spaces

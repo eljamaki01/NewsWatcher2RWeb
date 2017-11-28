@@ -76,14 +76,14 @@ class NewsView extends Component {
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.props.newsFilters.map((filter, idx) =>
-              <option value={idx}><strong>{filter.name}</strong></option>
+              <option key={idx} value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
         </FormGroup>
         <hr />
         <Media.List>
           {this.props.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
-            <Media.ListItem>
+            <Media.ListItem key={idx}>
               <Media.Left>
                 <a href={story.link} target="_blank">
                   <img alt="" className="media-object" src={story.imageUrl} />
@@ -99,7 +99,7 @@ class NewsView extends Component {
               </Media.Body>
             </Media.ListItem>
           )}
-          <Media.ListItem>
+          <Media.ListItem key={999}>
             <Media.Left>
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />

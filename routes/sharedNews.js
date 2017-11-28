@@ -11,7 +11,6 @@
 var express = require('express');
 var joi = require('joi'); // For data validation
 var authHelper = require('./authHelper');
-var config = require('../config');
 var ObjectId = require('mongodb').ObjectID;
 
 var router = express.Router();
@@ -44,7 +43,7 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
             if (err)
                 return next(err);
 
-            if (count > config.MAX_SHARED_STORIES)
+            if (count > process.env.MAX_SHARED_STORIES)
                 return next(new Error('Shared story limit reached'));
 		
             // Make sure the story was not already shared

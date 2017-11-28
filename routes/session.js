@@ -8,7 +8,6 @@ var bcrypt = require('bcryptjs'); // For password hash comparing
 var jwt = require('jwt-simple'); // For token authentication
 var joi = require('joi'); // For data validation
 var authHelper = require('./authHelper');
-var config = require('../config');
 
 var router = express.Router();
 
@@ -37,7 +36,7 @@ router.post('/', function postSession(req, res, next) {
             bcrypt.compare(req.body.password, user.passwordHash, function comparePassword(err, match) {
                 if (match) {
                     try {
-                        var token = jwt.encode({ authorized: true, sessionIP: req.ip, sessionUA: req.headers['user-agent'], userId: user._id.toHexString(), displayName: user.displayName }, config.JWT_SECRET);
+                        var token = jwt.encode({ authorized: true, sessionIP: req.ip, sessionUA: req.headers['user-agent'], userId: user._id.toHexString(), displayName: user.displayName }, process.env.JWT_SECRET);
                         res.status(201).json({ displayName: user.displayName, userId: user._id.toHexString(), token: token, msg: 'Authorized' });
                     } catch (err) {
                         return next(err);

@@ -7,7 +7,6 @@
 var express = require('express');
 var joi = require('joi'); // For data validation
 var authHelper = require('./authHelper');
-var config = require('../config');
 var ObjectId = require('mongodb').ObjectID;
 
 var router = express.Router();
@@ -16,7 +15,7 @@ var router = express.Router();
 // Return all the Home Page news stories. Call the middleware first to verify we have a logged in user.
 //
 router.get('/', function (req, res, next) {
-  req.db.collection.findOne({ _id: config.GLOBAL_STORIES_ID }, { homeNewsStories: 1 }, function (err, doc) {
+  req.db.collection.findOne({ _id: process.env.GLOBAL_STORIES_ID }, { homeNewsStories: 1 }, function (err, doc) {
     if (err)
       return next(err);
 

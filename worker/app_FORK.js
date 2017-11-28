@@ -11,21 +11,25 @@
 //
 // "require" statements to bring in needed Node Modules
 //
-var config = require('../config');
 var bcrypt = require('bcryptjs');
 var https = require("https");
 var async = require('async');
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
+// if (process.env.NODE_ENV !== 'production') {
+//   require('dotenv').config();
+// }
 
 var globalNewsDoc;
+const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "technology"];
+
 
 //
 // MongoDB database connection initialization
 //
 var db = {};
-MongoClient.connect(config.MONGODB_CONNECT_URL, function (err, dbConn) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, dbConn) {
   assert.equal(null, err);
   db.dbConnection = dbConn;
   db.collection = dbConn.collection('newswatcher');
@@ -75,7 +79,7 @@ process.on('message', function (m) {
 //
 function refreshStoriesMSG(doc, callback) {
   if (!globalNewsDoc) {
-    db.collection.findOne({ _id: config.GLOBAL_STORIES_ID }, function (err, gDoc) {
+    db.collection.findOne({ _id: process.env.GLOBAL_STORIES_ID }, function (err, gDoc) {
       if (err) {
         console.log('FORK_ERROR: global news readDocument() read err:' + err);
         if (callback)
@@ -114,10 +118,10 @@ function refreshStories(doc, callback) {
               storiesMatched++;
             }
           }
-          if (storiesMatched == config.MAX_FILTER_STORIES)
+          if (storiesMatched == process.env.MAX_FILTER_STORIES)
             break;
         }
-        if (storiesMatched == config.MAX_FILTER_STORIES)
+        if (storiesMatched == process.env.MAX_FILTER_STORIES)
           break;
       }
 
@@ -168,14 +172,14 @@ newsPullBackgroundTimer = setInterval(function () {
   // It will error if the size of this Document exceeds the maximum size (512KB). To fix this, split it up into as many as necessary.
   var date = new Date();
   console.log("app_FORK: datetime tick: " + date.toUTCString());
-  async.timesSeries(config.NEWYORKTIMES_CATEGORIES.length, function (n, next) {
+  async.timesSeries(NEWYORKTIMES_CATEGORIES.length, function (n, next) {
     setTimeout(function () {
       console.log('Get news stories from NYT. Pass #', n);
       try {
         https.get({
           host: 'api.nytimes.com',
-          path: '/svc/topstories/v2/' + config.NEWYORKTIMES_CATEGORIES[n] + '.json',
-          headers: { 'api-key': config.NEWYORKTIMES_API_KEY }
+          path: '/svc/topstories/v2/' + NEWYORKTIMES_CATEGORIES[n] + '.json',
+          headers: { 'api-key': process.env.NEWYORKTIMES_API_KEY }
         }, function (res) {
           var body = '';
           res.on('data', function (d) {
@@ -209,7 +213,7 @@ newsPullBackgroundTimer = setInterval(function () {
     } else {
       console.log('success');
       // Do the replacement of the news stories in the single master Document
-      db.collection.findOne({ _id: config.GLOBAL_STORIES_ID }, function (err, gDoc) {
+      db.collection.findOne({ _id: process.env.GLOBAL_STORIES_ID }, function (err, gDoc) {
         if (err) {
           console.log({ msg: 'FORK_ERROR', Error: 'Error with the global news doc read request: ' + JSON.stringify(err.body, null, 4) });
         } else {
