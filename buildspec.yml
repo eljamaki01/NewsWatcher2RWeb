@@ -11,10 +11,13 @@ phases:
       - echo Build started on `date`
       - echo Building React Web application
       - npm run build-react
-  post_build:
-    commands:
       - echo Performing Test
       - npm test
+  post_build:
+    commands:
+      - echo Final build, without devDependencies
+      - rm -rf node_modules/
+      - npm install
 artifacts:
   files:
     - '**/*'
