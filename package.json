@@ -16,7 +16,8 @@
     "lint": "eslint **/*.js",
     "test": "mocha --timeout 30000 test/functional_api_crud.js",
     "pretest": "npm run lint",
-    "posttest": "echo All tests have been run!"
+    "posttest": "echo All tests have been run!",
+    "mochatest": "mocha --timeout 30000 test/functional_api_crud.js"
   },
   "dependencies": {
     "async": "^2.6.0",

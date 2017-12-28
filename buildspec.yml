@@ -13,7 +13,7 @@ phases:
   post_build:
     commands:
       - echo Performing Test
-      - npm test
+      - npm run mochatest
 artifacts:
   files:
     - '**/*'
