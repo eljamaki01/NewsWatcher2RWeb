@@ -17,34 +17,30 @@ var async = require('async');
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
-// if (process.env.NODE_ENV !== 'production') {
-//   require('dotenv').config();
-// }
 
 var globalNewsDoc;
 const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "technology"];
-
 
 //
 // MongoDB database connection initialization
 //
 var db = {};
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, dbConn) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, client) {
   assert.equal(null, err);
-  db.dbConnection = dbConn;
-  db.collection = dbConn.collection('newswatcher');
-  console.log("Connected to MongoDB server");
+  db.client = client;
+  db.collection = client.db('newswatcherdb').collection('newswatcher');
+  console.log("Fork is connected to MongoDB server");
 });
 
 process.on('SIGINT', function () {
   console.log('MongoDB connection close on app termination');
-  db.dbConnection.close();
+  db.client.close();
   process.exit(0);
 });
 
 process.on('SIGUSR2', function () {
   console.log('MongoDB connection close on app restart');
-  db.dbConnection.close();
+  db.client.close();
   process.kill(process.pid, 'SIGUSR2');
 });
 
@@ -95,6 +91,7 @@ function refreshStoriesMSG(doc, callback) {
     refreshStories(doc, callback);
   }
 }
+
 function refreshStories(doc, callback) {
   // Loop through all newsFilters and seek matches for all returned stories
   for (var filterIdx = 0; filterIdx < doc.newsFilters.length; filterIdx++) {
@@ -107,7 +104,7 @@ function refreshStories(doc, callback) {
     // If there are keyWords, then filter by them
     if ("keyWords" in doc.newsFilters[filterIdx] && doc.newsFilters[filterIdx].keyWords[0] != "") {
       var storiesMatched = 0;
-      for (var i = 0; i < doc.newsFilters[filterIdx].keyWords.length; i++) {
+      for (let i = 0; i < doc.newsFilters[filterIdx].keyWords.length; i++) {
         for (var j = 0; j < globalNewsDoc.newsStories.length; j++) {
           if (globalNewsDoc.newsStories[j].keep == false) {
             var s1 = globalNewsDoc.newsStories[j].title.toLowerCase();
@@ -138,7 +135,7 @@ function refreshStories(doc, callback) {
   if (doc.newsFilters.length == 1 &&
     doc.newsFilters[0].keyWords.length == 1
     && doc.newsFilters[0].keyWords[0] == "testingKeyword") {
-    for (var i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i++) {
       doc.newsFilters[0].newsStories.push(globalNewsDoc.newsStories[0]);
       doc.newsFilters[0].newsStories[0].title = "testingKeyword title" + i;
     }
@@ -297,7 +294,7 @@ function refreshAllUserStories() {
         function (callback) {
           cursor.next(function (err, doc) {
             if (doc) {
-              refreshStories(doc, function (err) {
+              refreshStories(doc, function (err) { // eslint-disable-line no-unused-vars
                 callback(null);
               });
             } else {
@@ -331,7 +328,7 @@ staleStoryDeleteBackgroundTimer = setInterval(function () {
       var d2 = Date.now();
       var diff = Math.floor((d2 - d1) / 3600000);
       if (diff > 72) {
-        db.collection.findOneAndDelete({ type: 'SHAREDSTORY_TYPE', _id: story._id }, function (err, result) {
+        db.collection.findOneAndDelete({ type: 'SHAREDSTORY_TYPE', _id: story._id }, function (err, result) { // eslint-disable-line no-unused-vars
           innercallback(err);
         });
       } else {

@@ -5,9 +5,6 @@
 
 "use strict";
 var express = require('express');
-var joi = require('joi'); // For data validation
-var authHelper = require('./authHelper');
-var ObjectId = require('mongodb').ObjectID;
 
 var router = express.Router();
 

@@ -15,6 +15,7 @@ var assert = require('assert'); // assert testing of values
 var helmet = require('helmet'); // Helmet module for HTTP header hack mitigations
 var RateLimit = require('express-rate-limit'); // IP based rate limiter
 var csp = require('helmet-csp');
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -27,12 +28,12 @@ var homeNews = require('./routes/homeNews');
 var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
 
+// Apply limits to all requests 
 var limiter = new RateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes 
   max: 100, // limit each IP to 100 requests per windowMs 
   delayMs: 0 // disable delaying - full speed until the max limit is reached 
 });
-//  apply to all requests 
 app.use(limiter);
 
 app.use(helmet()); // Take the defaults to start with
@@ -47,7 +48,6 @@ app.use(csp({
     // reportUri: '/report-violation',
   }
 }));
-//app.use(helmet.noCache());
 
 // Adds an X-Response-Time header to responses to measure response times
 app.use(responseTime());
@@ -59,28 +59,20 @@ app.use(logger('dev'));
 // There is no need for allowing a huge body, it might be some type of attack, so use the limit option
 app.use(bodyParser.json({ limit: '100kb' }));
 
-// This middleware takes any query string key/value pairs and sticks them in the body property
-//app.use(bodyParser.urlencoded({ extended: false }));
-
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-  // console.log("HERE HERE HERE");
 });
 
-// Simplifies the serving up of static content such as HTML, images, CSS files, and JavaScript files
-//app.use(express.static(path.join(__dirname, 'static')));
+// Simplifies the serving up of static content such as HTML for the React SPA, images, CSS files, and JavaScript files
 app.use(express.static(path.join(__dirname, 'build')));
 
 //
 // Fire up the child process that will run in a separate machine core
 // and do some background processing. This way, this master process can
 // be freed up to keep processing to a minimum on its servicing threads.
-var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--debug=5859'] });
-// var node2 = cp.fork('./worker/app_FORK.js');
-// node2.on('message', function (m) {
-// 	console.log('PARENT got message:', m);
-// });
-// node2.send({ hello: 'Forked world' });
+//var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--debug=9229'] });
+//var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--inspect=9229'] });
+var node2 = cp.fork('./worker/app_FORK.js');
 
 //
 // MongoDB database connection initialization
@@ -89,38 +81,34 @@ var db = {};
 var MongoClient = require('mongodb').MongoClient;
 
 //Use connect method to connect to the Server
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, dbConn) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, client) {
   assert.equal(null, err);
-  db.dbConnection = dbConn;
-  db.collection = dbConn.collection('newswatcher');
+  db.client = client;
+  db.collection = client.db('newswatcherdb').collection('newswatcher');
   console.log("Connected to MongoDB server");
 });
 
+// If our process is shut down, close out the database connections gracefully
 process.on('SIGINT', function () {
   console.log('MongoDB connection close on app termination');
-  db.dbConnection.close();
+  db.client.close();
+  node2.kill();
   process.exit(0);
 });
 
 process.on('SIGUSR2', function () {
   console.log('MongoDB connection close on app restart');
-  db.dbConnection.close();
+  db.client.close();
+  node2.kill();
   process.kill(process.pid, 'SIGUSR2');
 });
 
+// Set the database connection for middleware usage
 app.use(function (req, res, next) {
   req.db = db;
   req.node2 = node2;
   next();
 });
-
-// For loading the default HTML page that acts as the SPA Web site
-// app.get('/', function(req, res) {
-//     res.render('index.html')
-// });
-// app.get('/', function (req, res) {
-//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-// });
 
 //
 // Rest API routes
@@ -175,22 +163,24 @@ app.use(function (req, res, next) {
 
 // development error handler that will add in a stacktrace
 if (app.get('env') === 'development') {
-  app.use(function (err, req, res, next) {
+  app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
     res.status(err.status || 500).json({ message: err.toString(), error: err });
     console.log(err);
   });
 }
 
 // production error handler with no stacktraces exposed to users
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
   res.status(err.status || 500).json({ message: err.toString(), error: {} });
   console.log(err);
 });
 
 app.set('port', process.env.PORT || 3000);
 
-//var debug = require('debug')('NewsWatcher');
 var server = app.listen(app.get('port'), function () {
-  //debug('Express server listening on port ' + server.address().port);
   console.log('Express server listening on port ' + server.address().port);
 });
+
+server.db = db;
+server.node2 = node2;
+module.exports = server;
