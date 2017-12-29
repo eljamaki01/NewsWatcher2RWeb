@@ -30,8 +30,8 @@ app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elas
 
 // Add in the tracing for AWS X-Ray as Express middleware
 var AWSXRay = require('aws-xray-sdk');
-AWSXRay.setLogger(logger);
-app.use(AWSXRay.express.openSegment('MyApp'));
+//Figure out how to get calls to MongoDB traced! Or, wait for that to become available like it is for PortgreSQL and DynamoDB?
+app.use(AWSXRay.express.openSegment('NewsWatcher'));
 
 // Apply limits to all requests 
 var limiter = new RateLimit({
