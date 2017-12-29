@@ -28,6 +28,10 @@ var homeNews = require('./routes/homeNews');
 var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
 
+// Add in the tracing for AWS X-Ray as Express middleware
+var AWSXRay = require('aws-xray-sdk');
+app.use(AWSXRay.express.openSegment('MyApp'));
+
 // Apply limits to all requests 
 var limiter = new RateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes 
@@ -174,6 +178,9 @@ app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
   res.status(err.status || 500).json({ message: err.toString(), error: {} });
   console.log(err);
 });
+
+// Close out the Express middleware usage for AWS X-Ray
+app.use(AWSXRay.express.closeSegment());
 
 app.set('port', process.env.PORT || 3000);
 
