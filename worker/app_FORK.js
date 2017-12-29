@@ -12,11 +12,16 @@
 // "require" statements to bring in needed Node Modules
 //
 var bcrypt = require('bcryptjs');
-var https = require("https");
+//var https = require("https");
 var async = require('async');
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
+
+var AWSXRay = require('aws-xray-sdk');
+var https = AWSXRay.captureHTTPs(require('https'));
+//AWSXRay.captureHTTPsGlobal(https);
+//set timer to go off every five minutes to check, then set it back
 
 var globalNewsDoc;
 const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "technology"];
@@ -278,7 +283,7 @@ newsPullBackgroundTimer = setInterval(function () {
       });
     }
   });
-}, 240 * 60 * 1000);
+}, 5 * 60 * 1000); // 240 is Every four hours
 
 function refreshAllUserStories() {
   db.collection.findOneAndUpdate({ _id: globalNewsDoc._id }, { $set: { newsStories: globalNewsDoc.newsStories, homeNewsStories: globalNewsDoc.homeNewsStories } }, function (err, result) {
