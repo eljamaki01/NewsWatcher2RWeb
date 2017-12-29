@@ -30,6 +30,7 @@ app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elas
 
 // Add in the tracing for AWS X-Ray as Express middleware
 var AWSXRay = require('aws-xray-sdk');
+AWSXRay.setLogger(logger);
 app.use(AWSXRay.express.openSegment('MyApp'));
 
 // Apply limits to all requests 
