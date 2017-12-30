@@ -20,7 +20,7 @@ var https;
 
 if (process.env.NODE_ENV === 'production') {
   var AWSXRay = require('aws-xray-sdk');
-  // AWSXRay.enableManualMode();
+  AWSXRay.enableManualMode();
   AWSXRay.setDefaultName("NewsWatcherForkedProcess");
   https = AWSXRay.captureHTTPs(require('https'));
   //Create a segment around this!!!
@@ -191,6 +191,7 @@ newsPullBackgroundTimer = setInterval(function () {
         }
         https.get({
           // XRaySegment: subsegment,
+          XRaySegment: segment,
           host: 'api.nytimes.com',
           path: '/svc/topstories/v2/' + NEWYORKTIMES_CATEGORIES[n] + '.json',
           headers: { 'api-key': process.env.NEWYORKTIMES_API_KEY }
@@ -200,7 +201,10 @@ newsPullBackgroundTimer = setInterval(function () {
             body += d;
           });
           res.on('end', function () {
-            segment.close();
+            if (process.env.NODE_ENV === 'production') {
+              segment.flush();
+              segment.close();
+            }
             next(null, body);
           });
         }).on('error', function (err) {
