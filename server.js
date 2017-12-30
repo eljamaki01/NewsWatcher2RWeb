@@ -167,21 +167,21 @@ app.use(function (req, res, next) {
 });
 
 // development error handler that will add in a stacktrace
-// if (app.get('env') === 'development') {
+if (app.get('env') === 'development') {
   app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
     var segment = AWSXRay.getSegment();
-    segment.addException(err);
-//    segment.addMetadata("findOneErrornew", err);
+    segment.addMetadata("devErrorHandler", err);
+    segment.addMetadata("errorHandler2", err.toString());
     res.status(err.status || 500).json({ message: err.toString(), error: err });
     console.log(err);
   });
-// }
+}
 
 // production error handler with no stacktraces exposed to users
 app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
   var segment = AWSXRay.getSegment();
-  segment.addException(err);
-  segment.addMetadata("findOneErrornew", err);
+  segment.addMetadata("errorHandler", err);
+  segment.addMetadata("errorHandler2", err.toString());
   res.status(err.status || 500).json({ message: err.toString(), error: {} });
   console.log(err);
 });
