@@ -24,7 +24,7 @@ describe('API endpoint exercising integration tests', function () {
 	before(function (done) {
 		setTimeout(function () {
 			done();
-		}, 3000);
+		}, 5000);
 	});
 
 	// Shut everything down gracefully

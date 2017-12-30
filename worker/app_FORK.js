@@ -18,11 +18,13 @@ var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
 
-// var AWSXRay = require('aws-xray-sdk');
-// var https = AWSXRay.captureHTTPs(require('https'));
-//Create a segment around this!!!
-//AWSXRay.captureHTTPsGlobal(https);
-//set timer to go off every five minutes to check, then set it back
+if (process.env.NODE_ENV === 'production') {
+  // var AWSXRay = require('aws-xray-sdk');
+  // var https = AWSXRay.captureHTTPs(require('https'));
+  //Create a segment around this!!!
+  //AWSXRay.captureHTTPsGlobal(https);
+  //set timer to go off every five minutes to check, then set it back
+}
 
 var globalNewsDoc;
 const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "technology"];

@@ -23,7 +23,6 @@ router.post('/', function postSession(req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
-    err = true;
     if (err)
       return next(new Error('Invalid field: password 7 to 15 (one number, one special character)'));
 
