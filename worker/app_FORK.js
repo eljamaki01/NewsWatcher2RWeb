@@ -12,23 +12,11 @@
 // "require" statements to bring in needed Node Modules
 //
 var bcrypt = require('bcryptjs');
+var https = require("https");
 var async = require('async');
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
-var https;
-
-if (process.env.NODE_ENV === 'production') {
-  var AWSXRay = require('aws-xray-sdk');
-  AWSXRay.enableManualMode();
-  AWSXRay.setDefaultName("NewsWatcherForkedProcess");
-  https = AWSXRay.captureHTTPs(require('https'));
-  //Create a segment around this!!!
-  //AWSXRay.captureHTTPsGlobal(https);
-  //set timer to go off every five minutes to check, then set it back
-} else {
-  https = require("https");
-}
 
 var globalNewsDoc;
 const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "technology"];
@@ -172,7 +160,7 @@ function refreshStories(doc, callback) {
 }
 
 //
-// Refresh all of the news stories in the master list every 15 minutes
+// Refresh all of the news stories in the master list every four hours
 //
 var count = 0;
 newsPullBackgroundTimer = setInterval(function () {
@@ -185,13 +173,7 @@ newsPullBackgroundTimer = setInterval(function () {
     setTimeout(function () {
       console.log('Get news stories from NYT. Pass #', n);
       try {
-        if (process.env.NODE_ENV === 'production') {
-          var segment = new AWSXRay.Segment("forkHTTPRequest");
-          AWSXRay.setSegment(segment);
-        }
         https.get({
-          // XRaySegment: subsegment,
-          XRaySegment: segment,
           host: 'api.nytimes.com',
           path: '/svc/topstories/v2/' + NEWYORKTIMES_CATEGORIES[n] + '.json',
           headers: { 'api-key': process.env.NEWYORKTIMES_API_KEY }
@@ -201,10 +183,6 @@ newsPullBackgroundTimer = setInterval(function () {
             body += d;
           });
           res.on('end', function () {
-            if (process.env.NODE_ENV === 'production') {
-              segment.flush();
-              segment.close();
-            }
             next(null, body);
           });
         }).on('error', function (err) {
@@ -300,7 +278,7 @@ newsPullBackgroundTimer = setInterval(function () {
       });
     }
   });
-}, 5 * 60 * 1000); // 240 is Every four hours
+}, 240 * 60 * 1000); // 240 is Every four hours
 
 function refreshAllUserStories() {
   db.collection.findOneAndUpdate({ _id: globalNewsDoc._id }, { $set: { newsStories: globalNewsDoc.newsStories, homeNewsStories: globalNewsDoc.homeNewsStories } }, function (err, result) {

@@ -178,12 +178,12 @@ if (app.get('env') === 'development') {
 
 // production error handler with no stacktraces exposed to users
 app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
+  res.status(err.status || 500).json({ message: err.toString(), error: {} });
   if (process.env.NODE_ENV === 'production') {
     var segment = AWSXRay.getSegment();
     segment.addMetadata("errorHandler", err.toString());
-    segment.addError(err);
+    // segment.addError(err);
   }
-  res.status(err.status || 500).json({ message: err.toString(), error: {} });
   console.log(err);
 });
 
