@@ -181,7 +181,7 @@ app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
   if (process.env.NODE_ENV === 'production') {
     var segment = AWSXRay.getSegment();
     // segment.addMetadata("errorHandler", err.toString());
-    segment.addError(err);
+    segment.addError(err.toString());
   }
   res.status(err.status || 500).json({ message: err.toString(), error: {} });
   console.log(err);
