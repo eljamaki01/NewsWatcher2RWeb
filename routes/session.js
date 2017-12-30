@@ -8,7 +8,6 @@ var bcrypt = require('bcryptjs'); // For password hash comparing
 var jwt = require('jwt-simple'); // For token authentication
 var joi = require('joi'); // For data validation
 var authHelper = require('./authHelper');
-var AWSXRay = require('aws-xray-sdk');
 
 var router = express.Router();
 
@@ -24,39 +23,30 @@ router.post('/', function postSession(req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
+    err = true;
     if (err)
       return next(new Error('Invalid field: password 7 to 15 (one number, one special character)'));
 
-    AWSXRay.captureAsyncFunc('session:POST', function (subsegment) {
-      req.db.collection.findOne({ type: 'USER_TYPE', email: req.body.email }, function (err, user) {
-        var err = new Error('My test error!');
+    req.db.collection.findOne({ type: 'USER_TYPE', email: req.body.email }, function (err, user) {
+      if (err)
+        return next(err);
 
-        if (err) {
-          subsegment.addException(err);
-          subsegment.addMetadata("findOneErrornew", err);
-          subsegment.close();
-          return next(err);
-        }
+      if (!user)
+        return next(new Error('User was not found.'));
 
-        if (!user) {
-          return next(new Error('User was not found.'));
-        }
-
-        bcrypt.compare(req.body.password, user.passwordHash, function comparePassword(err, match) {
-          if (match) {
-            try {
-              var token = jwt.encode({ authorized: true, sessionIP: req.ip, sessionUA: req.headers['user-agent'], userId: user._id.toHexString(), displayName: user.displayName }, process.env.JWT_SECRET);
-              res.status(201).json({ displayName: user.displayName, userId: user._id.toHexString(), token: token, msg: 'Authorized' });
-            } catch (err) {
-              return next(err);
-            }
-          } else {
-            return next(new Error('Wrong password'));
+      bcrypt.compare(req.body.password, user.passwordHash, function comparePassword(err, match) {
+        if (match) {
+          try {
+            var token = jwt.encode({ authorized: true, sessionIP: req.ip, sessionUA: req.headers['user-agent'], userId: user._id.toHexString(), displayName: user.displayName }, process.env.JWT_SECRET);
+            res.status(201).json({ displayName: user.displayName, userId: user._id.toHexString(), token: token, msg: 'Authorized' });
+          } catch (err) {
+            return next(err);
           }
-        });
+        } else {
+          return next(new Error('Wrong password'));
+        }
       });
     });
-
   });
 });
 
