@@ -20,6 +20,7 @@ var MongoClient = require('mongodb').MongoClient;
 
 var AWSXRay = require('aws-xray-sdk');
 var https = AWSXRay.captureHTTPs(require('https'));
+//Maybe I need to create a segment around this?
 //AWSXRay.captureHTTPsGlobal(https);
 //set timer to go off every five minutes to check, then set it back
 
