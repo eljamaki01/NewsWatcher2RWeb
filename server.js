@@ -28,13 +28,13 @@ var homeNews = require('./routes/homeNews');
 var app = express();
 app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elastic Beanstalk
 
-// Add in the tracing for AWS X-Ray as Express middleware in production
-if (process.env.NODE_ENV === 'production') {
-  var AWSXRay = require('aws-xray-sdk');
-  AWSXRay.config([AWSXRay.plugins.EC2Plugin,AWSXRay.plugins.ElasticBeanstalkPlugin]);
-  //Figure out how to get calls to MongoDB traced! Or, wait for that to become available like it is for PortgreSQL and DynamoDB?
-  app.use(AWSXRay.express.openSegment('NewsWatcher'));
-}
+// // Add in the tracing for AWS X-Ray as Express middleware in production
+// if (process.env.NODE_ENV === 'production') {
+//   var AWSXRay = require('aws-xray-sdk');
+//   AWSXRay.config([AWSXRay.plugins.EC2Plugin,AWSXRay.plugins.ElasticBeanstalkPlugin]);
+//   //Figure out how to get calls to MongoDB traced! Or, wait for that to become available like it is for PortgreSQL and DynamoDB?
+//   app.use(AWSXRay.express.openSegment('NewsWatcher'));
+// }
 
 // Apply limits to all requests 
 var limiter = new RateLimit({
@@ -179,21 +179,21 @@ if (app.get('env') === 'development') {
 
 // production error handler with no stacktraces exposed to users
 app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
-  if (process.env.NODE_ENV === 'production') {
-    var segment = AWSXRay.getSegment();
-    segment.addMetadata("errorHandler", err.toString());
-    // segment.addError(err);
-  }
+  // if (process.env.NODE_ENV === 'production') {
+  //   var segment = AWSXRay.getSegment();
+  //   segment.addMetadata("errorHandler", err.toString());
+  //   // segment.addError(err);
+  // }
   console.log(err);
   res.status(err.status || 500).json({ message: err.toString(), error: {} });
   next();
 });
 
 
-// Close out the Express middleware usage for AWS X-Ray
-if (process.env.NODE_ENV === 'production') {
-  app.use(AWSXRay.express.closeSegment());
-}
+// // Close out the Express middleware usage for AWS X-Ray
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(AWSXRay.express.closeSegment());
+// }
 
 app.set('port', process.env.PORT || 3000);
 
