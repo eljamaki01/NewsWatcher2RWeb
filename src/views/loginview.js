@@ -20,14 +20,6 @@ class LoginView extends Component {
     };
   }
 
-  // componentDidMount() {
-  //   if (this.props.session) {
-  //     return window.location.hash = "#news";
-  //   }
-
-  //   window.location.hash = "";
-  // }
-
   handleRegister = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
@@ -171,7 +163,7 @@ class LoginView extends Component {
           <Checkbox checked={this.state.remeberMe} onChange={this.handleCheckboxChange}>
             Keep me logged in
           </Checkbox>
-          <Button bsStyle="success" bsSize="lg" block type="submit">
+          <Button id="btnLogin" bsStyle="success" bsSize="lg" block type="submit">
             Login
           </Button>
         </form>

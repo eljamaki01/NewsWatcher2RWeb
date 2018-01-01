@@ -23,7 +23,7 @@ class SharedNewsView extends Component {
     }
 
     const { dispatch } = this.props
-    dispatch({ type: 'REQUEST_SHAREDNEWS' });        
+    dispatch({ type: 'REQUEST_SHAREDNEWS' });
     superagent.get('/api/sharednews')
       .set('Cache-Control', 'no-cache')
       .set('Pragma', 'no-cache')
@@ -141,7 +141,7 @@ class SharedNewsView extends Component {
                     />
                     <Button disabled={this.state.comment.length === 0} bsStyle="success" bsSize="lg" block type="submit">
                       <Glyphicon glyph="off" /> Add
-                  </Button>
+                    </Button>
                   </div>
                 }
               </form>

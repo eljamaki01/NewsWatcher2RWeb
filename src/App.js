@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import superagent from 'superagent';
 import './App.css';
 import { HashRouter, Switch, Route } from 'react-router-dom'
-// import { withRouter } from 'react-router-dom'
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import { IndexLinkContainer } from 'react-router-bootstrap';
 import { connect } from 'react-redux'
@@ -20,11 +19,8 @@ class App extends Component {
     const storedToken = window.localStorage.getItem("userToken");
     if (storedToken) {
       const tokenObject = JSON.parse(storedToken);
-      // this.setState({ session: tokenObject, loggedIn: true, currentMsg: `Signed in as ${tokenObject.displayName}` });
       this.props.dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${tokenObject.displayName}`, session: tokenObject });
-      // window.location.hash = "#news";
     } else {
-      // window.location.hash = "";
     }
   }
 
@@ -52,7 +48,7 @@ class App extends Component {
           <Navbar fluid default collapseOnSelect>
             <Navbar.Header>
               <Navbar.Brand>
-                NewsWatcher {this.props.currentMsg && <span><small>({this.props.currentMsg})</small></span>}
+                NewsWatcher {this.props.currentMsg && <span><small id="currentMsgId">({this.props.currentMsg})</small></span>}
               </Navbar.Brand>
               <Navbar.Toggle />
             </Navbar.Header>
@@ -63,7 +59,7 @@ class App extends Component {
                 {this.props.loggedIn && <IndexLinkContainer to="/sharednews" replace><NavItem >Shared News</NavItem></IndexLinkContainer>}
                 {this.props.loggedIn && <IndexLinkContainer to="/profile" replace><NavItem >Profile</NavItem></IndexLinkContainer>}
                 {this.props.loggedIn && <NavItem onClick={this.handleLogout}>Logout</NavItem>}
-                {!this.props.loggedIn && <IndexLinkContainer to="/login" replace><NavItem >Login</NavItem></IndexLinkContainer>}
+                {!this.props.loggedIn && <IndexLinkContainer to="/login" replace><NavItem id="loginLink">Login</NavItem></IndexLinkContainer>}
               </Nav>
             </Navbar.Collapse>
           </Navbar>
@@ -78,7 +74,6 @@ class App extends Component {
           </Switch>
         </div>
       </HashRouter>
-
     );
   }
 }
@@ -91,6 +86,4 @@ const mapStateToProps = state => {
   }
 }
 
-// export default App;
 export default connect(mapStateToProps)(App)
-// export default withRouter(connect(mapStateToProps)(App))

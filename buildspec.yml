@@ -5,19 +5,19 @@ phases:
     commands:
       - echo Installing Node Modules...
       - npm install
-      #- npm install --only=dev
+      - npm install --only=dev
   build:
     commands:
       - echo Build started on `date`
       - echo Building React Web application
       - npm run build-react
       - echo Performing Test
-      #- npm test
+      - npm test
   post_build:
     commands:
       - echo Final build, without devDependencies
-      #- rm -rf node_modules/
-      #- npm install
+      - rm -rf node_modules/
+      - npm install
 artifacts:
   files:
     - '**/*'
