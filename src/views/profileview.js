@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { FormGroup, FormControl, Checkbox, Button, Modal, Glyphicon, ButtonToolbar } from 'react-bootstrap';
 import { connect } from 'react-redux'
-import superagent from 'superagent';
-import noCache from 'superagent-no-cache';
 import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
@@ -23,40 +21,50 @@ class ProfileView extends Component {
     }
 
     const { dispatch } = this.props
-    dispatch({ type: 'REQUEST_PROFILE' });    
-    superagent.get(`/api/users/${this.props.session.userId}`)
-      .set('Cache-Control', 'no-cache')
-      .set('Pragma', 'no-cache')
-      .set('If-Modified-Since', '0')
-      .set('x-auth', this.props.session.token)
-      .use(noCache)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Profile fetch failed: ${res.body.message}` });
-        } else {
-          for (var i = 0; i < res.body.newsFilters.length; i++) {
-            res.body.newsFilters[i].keywordsStr = res.body.newsFilters[i].keyWords.join(',');
-          }
-          dispatch({ type: 'RECEIVE_PROFILE_SUCCESS', user: res.body });
-          dispatch({ type: 'MSG_DISPLAY', msg: "Profile fetched" });
+    dispatch({ type: 'REQUEST_PROFILE' });
+    fetch(`/api/users/${this.props.session.userId}`, {
+      method: 'GET',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default' // no-store or no-cache?
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        for (var i = 0; i < response.json.newsFilters.length; i++) {
+          response.json.newsFilters[i].keywordsStr = response.json.newsFilters[i].keyWords.join(',');
+        }
+        dispatch({ type: 'RECEIVE_PROFILE_SUCCESS', user: response.json });
+        dispatch({ type: 'MSG_DISPLAY', msg: "Profile fetched" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Profile fetch failed: ${error.message}` });
       });
   }
 
   handleUnRegister = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    superagent.delete(`/api/users/${this.props.session.userId}`)
-      .send(this.props.user)
-      .set('Content-Type', 'application/json')
-      .set('x-auth', this.props.session.token)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Account delete failed: ${res.body.message}` });
-        } else {
-          this.props.appLogoutCB();
-          dispatch({ type: 'MSG_DISPLAY', msg: "Account deleted" });
+    fetch(`/api/users/${this.props.session.userId}`, {
+      method: 'DELETE',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default' // no-store or no-cache?
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        this.props.appLogoutCB();
+        dispatch({ type: 'MSG_DISPLAY', msg: "Account deleted" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Account delete failed: ${error.message}` });
       });
   }
 
@@ -101,17 +109,23 @@ class ProfileView extends Component {
   handleSave = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    superagent.put(`/api/users/${this.props.session.userId}`)
-      .send(this.props.user)
-      .set('Content-Type', 'application/json')
-      .set('x-auth', this.props.session.token)
-      .use(noCache)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Profile save failed: ${res.body.message}` });
-        } else {
-          dispatch({ type: 'MSG_DISPLAY', msg: "Profile saved" });
+    fetch(`/api/users/${this.props.session.userId}`, {
+      method: 'PUT',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default', // no-store or no-cache ro default?
+      body: JSON.stringify(this.props.user)
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        dispatch({ type: 'MSG_DISPLAY', msg: "Profile saved" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Profile save failed: ${error.message}` });
       });
   }
 
@@ -131,7 +145,7 @@ class ProfileView extends Component {
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.props.user.newsFilters.map((filter, idx) =>
-               <option key={idx} value={idx}><strong>{filter.name}</strong></option>
+              <option key={idx} value={idx}><strong>{filter.name}</strong></option>
             )}
           </FormControl>
         </FormGroup>

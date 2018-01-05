@@ -14,7 +14,7 @@
     "build-react": "react-scripts build",
     "test-react": "react-scripts test --env=jsdom",
     "lint": "eslint **/*.js",
-    "test": "mocha --timeout 30000 test/functional_api_crud.js",
+    "test": "mocha --timeout 30000 test/functional_api_crud.js && react-scripts test --coverage --env=jsdom",
     "pretest": "npm run lint",
     "posttest": "echo All tests have been run!",
     "mochatest": "mocha --timeout 30000 test/functional_api_crud.js"
@@ -44,11 +44,11 @@
     "react-router-dom": "^4.2.2",
     "react-scripts": "^1.0.17",
     "redux": "^3.7.2",
-    "response-time": "^2.3.2",
-    "superagent": "^3.8.2",
-    "superagent-no-cache": "^0.1.1"
+    "response-time": "^2.3.2"
   },
   "devDependencies": {
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.14.0",
     "eslint-plugin-react": "^7.5.1",
     "gulp": "^3.9.1",
@@ -56,6 +56,7 @@
     "gulp-git": "^2.5.0",
     "gulp-mocha": "^4.3.1",
     "mocha": "^4.0.1",
+    "react-test-renderer": "^16.2.0",
     "run-sequence": "^2.2.0",
     "selenium-webdriver": "^3.6.0",
     "supertest": "^3.0.0"

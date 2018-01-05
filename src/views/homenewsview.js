@@ -2,36 +2,41 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Media } from 'react-bootstrap';
 import { connect } from 'react-redux'
-import superagent from 'superagent';
-import noCache from 'superagent-no-cache';
 import { toHours } from '../utils/utils';
 import '../App.css';
 
-class HomeNewsView extends Component {
+class HomeNewsView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { isLoading: true, news: null };
+  }
 
   componentDidMount() {
-    const { dispatch } = this.props
-    dispatch({ type: 'REQUEST_HOMENEWS' });    
-    superagent.get('/api/homenews')
-      .set('Cache-Control', 'no-cache')
-      .set('Pragma', 'no-cache')
-      .set('If-Modified-Since', '0')
-      .use(noCache)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${res.body.message}` });
-        } else {
-          for (var i = 0; i < res.body.length; i++) {
-            res.body[i].hours = toHours(res.body[i].date);
-          }
-          dispatch({ type: 'RECEIVE_HOMENEWS_SUCCESS', news: res.body });
-          dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
+    return fetch('/api/homenews', {
+      method: 'GET',
+      cache: 'default'
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        for (var i = 0; i < response.json.length; i++) {
+          response.json[i].hours = toHours(response.json[i].date);
+        }
+        this.setState({
+          isLoading: false,
+          news: response.json
+        });
+        this.props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
+      })
+      .catch(error => {
+        this.props.dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${error.message}` });
       });
   }
 
   render() {
-    if (this.props.isLoading) {
+    if (this.state.isLoading) {
       return (
         <h1>Loading home page news...</h1>
       );
@@ -40,7 +45,7 @@ class HomeNewsView extends Component {
       <div>
         <h1>Home Page News</h1 >
         <Media.List>
-          {this.props.news.map((newsStory, idx) =>
+          {this.state.news.map((newsStory, idx) =>
             <Media.ListItem key={idx}>
               <Media.Left>
                 <a href={newsStory.link} target="_blank">
@@ -54,7 +59,7 @@ class HomeNewsView extends Component {
               </Media.Body>
             </Media.ListItem>
           )}
-          <Media.ListItem key={999}>
+          <Media.ListItem key={this.state.news.length}>
             <Media.Left>
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />
@@ -70,15 +75,4 @@ class HomeNewsView extends Component {
   }
 }
 
-HomeNewsView.propTypes = {
-  dispatch: PropTypes.func.isRequired
-};
-
-const mapStateToProps = state => {
-  return {
-    news: state.homenews.news,
-    isLoading: state.homenews.isLoading
-  }
-}
-
-export default connect(mapStateToProps)(HomeNewsView)
+export default HomeNewsView;

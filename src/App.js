@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import superagent from 'superagent';
 import './App.css';
 import { HashRouter, Switch, Route } from 'react-router-dom'
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
@@ -27,17 +26,24 @@ class App extends Component {
   handleLogout = (event) => {
     const { dispatch } = this.props
     event && event.preventDefault();
-    superagent.delete(`/api/sessions/${this.props.session.userId}`)
-      .set('Content-Type', 'application/json')
-      .set('x-auth', this.props.session.token)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Sign out failed: ${res.body.message}` });
-        } else {
-          dispatch({ type: 'DELETE_TOKEN_SUCCESS', msg: "Signed out" });
-          window.localStorage.removeItem("userToken");
-          window.location.hash = "";
+    fetch(`/api/sessions/${this.props.session.userId}`, {
+      method: 'DELETE',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default' // no-store or no-cache?
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        dispatch({ type: 'DELETE_TOKEN_SUCCESS', msg: "Signed out" });
+        window.localStorage.removeItem("userToken");
+        window.location.hash = "";
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Sign out failed: ${error.message}` });
       });
   }
 
@@ -65,7 +71,7 @@ class App extends Component {
           </Navbar>
           <hr />
           <Switch>
-            <Route exact path="/" component={HomeNewsView} />
+            <Route path="/" render={() => <HomeNewsView dispatch={this.props.dispatch} />} />
             <Route path="/login" component={LoginView} />
             <Route path="/news" component={NewsView} />
             <Route path="/sharednews" component={SharedNewsView} />

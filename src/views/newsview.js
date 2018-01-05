@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { FormGroup, FormControl, Media } from 'react-bootstrap';
 import { connect } from 'react-redux'
-import superagent from 'superagent';
-import noCache from 'superagent-no-cache';
 import { toHours } from '../utils/utils';
 import '../App.css';
 
@@ -23,24 +21,28 @@ class NewsView extends Component {
 
     const { dispatch } = this.props
     dispatch({ type: 'REQUEST_NEWS' });
-    superagent.get(`/api/users/${this.props.session.userId}`)
-      .set('Cache-Control', 'no-cache')
-      .set('Pragma', 'no-cache')
-      .set('If-Modified-Since', '0')
-      .set('x-auth', this.props.session.token)
-      .use(noCache)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `News fetch failed: ${res.body.message}` });
-        } else {
-          for (var i = 0; i < res.body.newsFilters.length; i++) {
-            for (var j = 0; j < res.body.newsFilters[i].newsStories.length; j++) {
-              res.body.newsFilters[i].newsStories[j].hours = toHours(res.body.newsFilters[i].newsStories[j].date);
-            }
-          }
-          dispatch({ type: 'RECEIVE_NEWS_SUCCESS', newsFilters: res.body.newsFilters });
-          dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
+    fetch(`/api/users/${this.props.session.userId}`, {
+      method: 'GET',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default' // no-store or no-cache?
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        for (var i = 0; i < response.json.newsFilters.length; i++) {
+          for (var j = 0; j < response.json.newsFilters[i].newsStories.length; j++) {
+            response.json.newsFilters[i].newsStories[j].hours = toHours(response.json.newsFilters[i].newsStories[j].date);
+          }
+        }
+        dispatch({ type: 'RECEIVE_NEWS_SUCCESS', newsFilters: response.json.newsFilters });
+        dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `News fetch failed: ${error.message}` });
       });
   }
 
@@ -51,16 +53,24 @@ class NewsView extends Component {
   handleShareStory = (index, event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    superagent.post('/api/sharednews')
-      .send(this.props.newsFilters[this.state.selectedIdx].newsStories[index])
-      .set('Content-Type', 'application/json')
-      .set('x-auth', this.props.session.token)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 201) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Share of story failed: ${res.body.message}` });
-        } else {
-          dispatch({ type: 'MSG_DISPLAY', msg: "Story shared" });
+    fetch('/api/sharednews', {
+      method: 'POST',
+      headers: new Headers({
+        'x-auth': this.props.session.token,
+        'Content-Type': 'application/json'
+      }),
+      cache: 'default', // no-store or no-cache ro default?
+      body: JSON.stringify(this.props.newsFilters[this.state.selectedIdx].newsStories[index])
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 201) {
+          throw new Error(response.json.message);
         }
+        dispatch({ type: 'MSG_DISPLAY', msg: "Story shared" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Share of story failed: ${error.message}` });
       });
   }
 
@@ -99,7 +109,7 @@ class NewsView extends Component {
               </Media.Body>
             </Media.ListItem>
           )}
-          <Media.ListItem key={999}>
+          <Media.ListItem key={this.props.newsFilters[this.state.selectedIdx].newsStories.length}>
             <Media.Left>
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />

@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { FormGroup, ControlLabel, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
 import { connect } from 'react-redux'
-import superagent from 'superagent';
-import noCache from 'superagent-no-cache';
 import { FieldGroup, toHours } from '../utils/utils';
 import '../App.css';
 
@@ -24,22 +22,26 @@ class SharedNewsView extends Component {
 
     const { dispatch } = this.props
     dispatch({ type: 'REQUEST_SHAREDNEWS' });
-    superagent.get('/api/sharednews')
-      .set('Cache-Control', 'no-cache')
-      .set('Pragma', 'no-cache')
-      .set('If-Modified-Since', '0')
-      .set('x-auth', this.props.session.token)
-      .use(noCache)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 200) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Shared News fetch failed: ${res.body.message}` });
-        } else {
-          for (var i = 0; i < res.body.length; i++) {
-            res.body[i].story.hours = toHours(res.body[i].story.date);
-          }
-          dispatch({ type: 'RECEIVE_SHAREDNEWS_SUCCESS', news: res.body });
-          dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
+    fetch('/api/sharednews', {
+      method: 'GET',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default' // no-store or no-cache?
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 200) {
+          throw new Error(response.json.message);
         }
+        for (var i = 0; i < response.json.length; i++) {
+          response.json[i].story.hours = toHours(response.json[i].story.date);
+        }
+        dispatch({ type: 'RECEIVE_SHAREDNEWS_SUCCESS', news: response.json });
+        dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Shared News fetch failed: ${error.message}` });
       });
   }
 
@@ -54,19 +56,26 @@ class SharedNewsView extends Component {
   handleAddComment = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    superagent.post(`/api/sharednews/${this.props.news[this.state.selectedStoryIdx].story.storyID}/Comments`)
-      .send({ comment: this.state.comment })
-      .set('Content-Type', 'application/json')
-      .set('x-auth', this.props.session.token)
-      .end((err, res) => {
-        if (err || !res.ok || res.status !== 201) {
-          dispatch({ type: 'MSG_DISPLAY', msg: `Comment add failed: ${res.body.message}` });
-        } else {
-          var storyIdx = this.state.selectedStoryIdx;
-          dispatch({ type: 'ADD_COMMENT_SUCCESS', comment: this.state.comment, displayName: this.props.session.displayName, storyIdx: storyIdx });
-          this.setState({ showModal: false, comment: "" });
-          dispatch({ type: 'MSG_DISPLAY', msg: "Comment added" });
+    fetch(`/api/sharednews/${this.props.news[this.state.selectedStoryIdx].story.storyID}/Comments`, {
+      method: 'POST',
+      headers: new Headers({
+        'x-auth': this.props.session.token
+      }),
+      cache: 'default', // no-store or no-cache ro default?
+      body: JSON.stringify({ comment: this.state.comment })
+    })
+      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+      .then(response => {
+        if (!response.ok || response.status !== 201) {
+          throw new Error(response.json.message);
         }
+        var storyIdx = this.state.selectedStoryIdx;
+        dispatch({ type: 'ADD_COMMENT_SUCCESS', comment: this.state.comment, displayName: this.props.session.displayName, storyIdx: storyIdx });
+        this.setState({ showModal: false, comment: "" });
+        dispatch({ type: 'MSG_DISPLAY', msg: "Comment added" });
+      })
+      .catch(error => {
+        dispatch({ type: 'MSG_DISPLAY', msg: `Comment add failed: ${error.message}` });
       });
   }
 
@@ -99,7 +108,7 @@ class SharedNewsView extends Component {
               </Media.Body>
             </Media.ListItem>
           )}
-          <Media.ListItem key={999}>
+          <Media.ListItem key={this.props.news.length}>
             <Media.Left>
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />
