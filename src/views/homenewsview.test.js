@@ -4,7 +4,7 @@ import { shallow, mount } from 'enzyme';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import reducer from '../reducers';
-import HomeNewsView from '../views/homenewsview';
+import HomeNewsView from './homenewsview';
 
 const mockResponse = (status, statusText, response) => {
   return new window.Response(response, {

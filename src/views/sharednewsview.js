@@ -59,7 +59,8 @@ class SharedNewsView extends Component {
     fetch(`/api/sharednews/${this.props.news[this.state.selectedStoryIdx].story.storyID}/Comments`, {
       method: 'POST',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': this.props.session.token,
+        'Content-Type': 'application/json'
       }),
       cache: 'default', // no-store or no-cache ro default?
       body: JSON.stringify({ comment: this.state.comment })
@@ -156,7 +157,7 @@ class SharedNewsView extends Component {
               </form>
             </Modal.Body>
             <Modal.Footer>
-              <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Close</Button>
+              <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Close</Button>
             </Modal.Footer>
           </Modal>
         }

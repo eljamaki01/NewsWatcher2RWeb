@@ -71,7 +71,7 @@ class App extends Component {
           </Navbar>
           <hr />
           <Switch>
-            <Route path="/" render={() => <HomeNewsView dispatch={this.props.dispatch} />} />
+            <Route exact path="/" render={() => <HomeNewsView dispatch={this.props.dispatch} />} />
             <Route path="/login" component={LoginView} />
             <Route path="/news" component={NewsView} />
             <Route path="/sharednews" component={SharedNewsView} />

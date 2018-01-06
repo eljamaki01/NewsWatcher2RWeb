@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
-class LoginView extends Component {
+export class LoginView extends Component {
   constructor(props) {
     super(props);
 
@@ -21,7 +21,7 @@ class LoginView extends Component {
   handleRegister = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    fetch('/api/users', {
+    return fetch('/api/users', {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ class LoginView extends Component {
   handleLogin = (event) => {
     const { dispatch } = this.props
     event.preventDefault();
-    fetch('/api/sessions', {
+    return fetch('/api/sessions', {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json'
@@ -144,7 +144,7 @@ class LoginView extends Component {
         </form>
       </Modal.Body>
       <Modal.Footer>
-        <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
+        <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
       </Modal.Footer>
     </Modal>)
   }
@@ -152,7 +152,10 @@ class LoginView extends Component {
   render() {
     // If already logged in, then don't go here and get routed to the news view
     if (this.props.session) {
-      return null;
+      // return null;
+      return (
+        <h1 id="h1ExistID">Logged in...</h1>
+      );
     }
     return (
       <div>
@@ -172,7 +175,7 @@ class LoginView extends Component {
             type="password"
             onChange={this.handlePasswordChange}
           />
-          <Checkbox checked={this.state.remeberMe} onChange={this.handleCheckboxChange}>
+          <Checkbox id="rememberMeChk" checked={this.state.remeberMe} onChange={this.handleCheckboxChange}>
             Keep me logged in
           </Checkbox>
           <Button id="btnLogin" bsStyle="success" bsSize="lg" block type="submit">
@@ -187,7 +190,8 @@ class LoginView extends Component {
 }
 
 LoginView.propTypes = {
-  dispatch: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired,
+  session: PropTypes.object
 };
 
 const mapStateToProps = state => {

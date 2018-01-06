@@ -112,7 +112,8 @@ class ProfileView extends Component {
     fetch(`/api/users/${this.props.session.userId}`, {
       method: 'PUT',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': this.props.session.token,
+        'Content-Type': 'application/json'
       }),
       cache: 'default', // no-store or no-cache ro default?
       body: JSON.stringify(this.props.user)
@@ -169,9 +170,9 @@ class ProfileView extends Component {
           />
           <div class="btn-group btn-group-justified" role="group" aria-label="...">
             <ButtonToolbar>
-              <Button bsStyle="primary" bsSize="default" onClick={this.handleAdd}><Glyphicon glyph="plus" /> Add</Button>
-              <Button bsStyle="primary" bsSize="default" onClick={this.handleDelete}><Glyphicon glyph="trash" /> Delete</Button>
-              <Button bsStyle="primary" bsSize="default" onClick={this.handleSave}><Glyphicon glyph="save" /> Save</Button>
+              <Button bsStyle="primary" bsSize="sm" onClick={this.handleAdd}><Glyphicon glyph="plus" /> Add</Button>
+              <Button bsStyle="primary" bsSize="sm" onClick={this.handleDelete}><Glyphicon glyph="trash" /> Delete</Button>
+              <Button bsStyle="primary" bsSize="sm" onClick={this.handleSave}><Glyphicon glyph="save" /> Save</Button>
             </ButtonToolbar>
           </div>
         </form>
@@ -192,7 +193,7 @@ class ProfileView extends Component {
             </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button bsStyle="danger" bsSize="default" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Cancel</Button>
+            <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Cancel</Button>
           </Modal.Footer>
         </Modal>
       </div>
