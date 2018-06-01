@@ -62,21 +62,22 @@ describe('<LoginView /> (mocked data)', () => {
   });
 
   it('User can change remember me checkbox and enter an email', () => {
-    // We will bypass the connected component and go directly to the contained component
-    // and can do a shallow rendering in this case
+    // We will bypass the connected component and go directly to the
+    // contained component and can do a shallow rendering in this case
     const rc = shallow(<LoginView dispatch={() => {}} session={null} />, { disableLifecycleMethods: true })
-
-    // In the case of a checkbox, there is not a way to click it or  cause a change to it to
-    // have it run the onChange() handler so we just call the method ourselves and fake what
-    // would be passed in for the event.
+  
+    // In the case of a checkbox, there is not a way to click it or  cause a
+    // change to it to have it run the onChange() handler so we just call the
+    // method ourselves and fake what would be passed in for the event.
     expect(rc.state().remeberMe).toEqual(false);
     rc.instance().handleCheckboxChange({ target: {checked: true } });
     expect(rc.state().remeberMe).toEqual(true);
-
-    // Similar thing going on, for text input, but in this case we can get an onChange() to happen
+  
+    // Similar thing going on, for text input, but in this case we can get an
+    // onChange() to happen
     rc.find('#formControlsEmail2').last().simulate('change',{ target: { value: "abc@def.com" } })
     expect(rc.state().email).toEqual("abc@def.com");
-  });
+  });  
 
   it('Login failure return is handled', (done) => {
     const mockData = {message: "Error: User was not found.", error: {}};

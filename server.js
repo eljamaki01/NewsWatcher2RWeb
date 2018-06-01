@@ -78,9 +78,15 @@ app.use(express.static(path.join(__dirname, 'build')));
 // Fire up the child process that will run in a separate machine core
 // and do some background processing. This way, this master process can
 // be freed up to keep processing to a minimum on its servicing threads.
-//var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--debug=9229'] });
 //var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--inspect=9229'] });
 var node2 = cp.fork('./worker/app_FORK.js');
+node2.on('exit', function (code) {
+  console.log("Worker crashed and was restarted.", code);
+  node2 = undefined;
+  // We  don't want to restart if this was a mocha test run.
+  if (!server.testrun)
+    node2 = cp.fork('./worker/app_FORK.js');
+});
 
 //
 // MongoDB database connection initialization

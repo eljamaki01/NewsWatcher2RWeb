@@ -33,13 +33,13 @@ MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, client) {
 });
 
 process.on('SIGINT', function () {
-  console.log('MongoDB connection close on app termination');
+  console.log('Forked MongoDB connection close on app termination');
   db.client.close();
   process.exit(0);
 });
 
 process.on('SIGUSR2', function () {
-  console.log('MongoDB connection close on app restart');
+  console.log('Forked MongoDB connection close on app restart');
   db.client.close();
   process.kill(process.pid, 'SIGUSR2');
 });

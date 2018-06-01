@@ -12,6 +12,7 @@ class ProfileView extends Component {
     this.state = {
       deleteOK: false,
       selectedIdx: 0,
+      showModal: false
     };
   }
 
@@ -144,7 +145,7 @@ class ProfileView extends Component {
       <div>
         <h1>Profile: News Filters</h1>
         <FormGroup controlId="formControlsSelect">
-          <FormControl bsSize="lg" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
+          <FormControl bsSize="sm" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.props.user.newsFilters.map((filter, idx) =>
               <option key={idx} value={idx}><strong>{filter.name}</strong></option>
             )}
@@ -170,8 +171,8 @@ class ProfileView extends Component {
           />
           <div class="btn-group btn-group-justified" role="group" aria-label="...">
             <ButtonToolbar>
-              <Button bsStyle="primary" bsSize="sm" onClick={this.handleAdd}><Glyphicon glyph="plus" /> Add</Button>
-              <Button bsStyle="primary" bsSize="sm" onClick={this.handleDelete}><Glyphicon glyph="trash" /> Delete</Button>
+              <Button disabled={this.props.user.newsFilters.length > 4} bsStyle="primary" bsSize="sm" onClick={this.handleAdd}><Glyphicon glyph="plus" /> Add</Button>
+              <Button disabled={this.props.user.newsFilters.length < 2} bsStyle="primary" bsSize="sm" onClick={this.handleDelete}><Glyphicon glyph="trash" /> Delete</Button>
               <Button bsStyle="primary" bsSize="sm" onClick={this.handleSave}><Glyphicon glyph="save" /> Save</Button>
             </ButtonToolbar>
           </div>

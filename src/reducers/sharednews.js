@@ -8,10 +8,10 @@ const initialState = {
 const news = (state = initialState, action) => {
   switch (action.type) {
     case 'REQUEST_SHAREDNEWS':
-    return {
-      isLoading: true,
-      news: []
-    }
+      return {
+        isLoading: true,
+        news: []
+      }
     case 'RECEIVE_SHAREDNEWS_SUCCESS':
       return {
         // ...state,

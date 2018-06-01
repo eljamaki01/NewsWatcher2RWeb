@@ -17,6 +17,7 @@ var assert = require('assert');
 
 // To self launch app and test against it
 var app = require('../server.js');
+app.testrun = true;
 var request = require('supertest')(app);
 
 describe('API endpoint exercising integration tests', function () {

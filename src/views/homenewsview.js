@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Media } from 'react-bootstrap';
-import { connect } from 'react-redux'
 import { toHours } from '../utils/utils';
 import '../App.css';
 
-class HomeNewsView extends React.Component {
+class HomeNewsView extends Component {
   constructor(props) {
     super(props);
     this.state = { isLoading: true, news: null };
