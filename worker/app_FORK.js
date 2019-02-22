@@ -175,8 +175,8 @@ newsPullBackgroundTimer = setInterval(function () {
       try {
         https.get({
           host: 'api.nytimes.com',
-          path: '/svc/topstories/v2/' + NEWYORKTIMES_CATEGORIES[n] + '.json',
-          headers: { 'api-key': process.env.NEWYORKTIMES_API_KEY }
+          path: '/svc/topstories/v2/' + NEWYORKTIMES_CATEGORIES[n] + '.json?api-key=' + process.env.NEWYORKTIMES_API_KEY
+          // headers: { 'api-key': process.env.NEWYORKTIMES_API_KEY }
         }, function (res) {
           var body = '';
           res.on('data', function (d) {

@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "async": "^2.6.0",
-    "aws-sdk": "^2.238.1",
+    "aws-sdk": "^2.408.0",
     "aws-xray-sdk": "^1.2.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
@@ -35,7 +35,7 @@
     "joi": "^13.3.0",
     "jwt-simple": "^0.5.1",
     "mongodb": "^3.0.8",
-    "morgan": "^1.9.0",
+    "morgan": "^1.9.1",
     "react": "^16.3.2",
     "react-bootstrap": "^0.32.1",
     "react-dom": "^16.3.2",
@@ -47,8 +47,8 @@
     "response-time": "^2.3.2"
   },
   "devDependencies": {
-    "enzyme": "^3.3.0",
-    "enzyme-adapter-react-16": "^1.1.1",
+    "enzyme": "^3.9.0",
+    "enzyme-adapter-react-16": "^1.9.1",
     "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.8.1",
     "gulp": "^3.9.1",
