@@ -97,7 +97,7 @@ class SharedNewsView extends Component {
           {this.props.news.map((sharedStory, idx) =>
             <Media.ListItem key={idx}>
               <Media.Left>
-                <a href={sharedStory.story.link} target="_blank">
+                <a href={sharedStory.story.link} target="_blank" rel="noopener noreferrer">
                   <img alt="" className="media-object" src={sharedStory.story.imageUrl} />
                 </a>
               </Media.Left>

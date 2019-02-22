@@ -25,7 +25,7 @@ const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "techn
 // MongoDB database connection initialization
 //
 var db = {};
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, client) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true }, function (err, client) {
   assert.equal(null, err);
   db.client = client;
   db.collection = client.db('newswatcherdb').collection('newswatcher');

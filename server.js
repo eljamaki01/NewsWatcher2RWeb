@@ -95,7 +95,7 @@ var db = {};
 var MongoClient = require('mongodb').MongoClient;
 
 //Use connect method to connect to the Server
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, function (err, client) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true }, function (err, client) {
   assert.equal(null, err);
   db.client = client;
   db.collection = client.db('newswatcherdb').collection('newswatcher');

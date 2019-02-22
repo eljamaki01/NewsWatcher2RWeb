@@ -42,23 +42,28 @@
     "react-redux": "^5.0.7",
     "react-router-bootstrap": "^0.24.4",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "^1.1.4",
+    "react-scripts": "^2.1.5",
     "redux": "^3.7.2",
     "response-time": "^2.3.2"
   },
   "devDependencies": {
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.9.1",
-    "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.8.1",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-bump": "^2.9.0",
     "gulp-git": "^2.6.0",
-    "gulp-mocha": "^4.3.1",
+    "gulp-mocha": "^6.0.0",
     "mocha": "^4.1.0",
     "react-test-renderer": "^16.3.2",
     "run-sequence": "^2.2.1",
     "selenium-webdriver": "^3.6.0",
     "supertest": "^3.0.0"
-  }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

@@ -95,7 +95,7 @@ class NewsView extends Component {
           {this.props.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
             <Media.ListItem key={idx}>
               <Media.Left>
-                <a href={story.link} target="_blank">
+                <a href={story.link} target="_blank" rel="noopener noreferrer">
                   <img alt="" className="media-object" src={story.imageUrl} />
                 </a>
               </Media.Left>

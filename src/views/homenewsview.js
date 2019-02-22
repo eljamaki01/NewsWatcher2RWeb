@@ -46,7 +46,7 @@ class HomeNewsView extends Component {
           {this.state.news.map((newsStory, idx) =>
             <Media.ListItem key={idx}>
               <Media.Left>
-                <a href={newsStory.link} target="_blank">
+                <a href={newsStory.link} target="_blank" rel="noopener noreferrer">
                   <img alt="" className="media-object" src={newsStory.imageUrl} />
                 </a>
               </Media.Left>
