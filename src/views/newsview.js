@@ -86,7 +86,7 @@ class NewsView extends Component {
         <FormGroup controlId="formControlsSelect">
           <FormControl bsSize="sm" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
             {this.props.newsFilters.map((filter, idx) =>
-              <option key={idx} value={idx}><strong>{filter.name}</strong></option>
+              <option key={idx} value={idx}>{filter.name}</option>
             )}
           </FormControl>
         </FormGroup>
