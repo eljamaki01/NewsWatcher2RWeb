@@ -207,7 +207,7 @@ router.post('/:id/savedstories', authHelper.checkAuth, function (req, res, next)
 
   // Validate the body
   var schema = {
-    contentSnippet: joi.string().max(200).required(),
+    contentSnippet: joi.string().max(300).required(),
     date: joi.date().required(),
     hours: joi.string().max(20),
     imageUrl: joi.string().max(300).required(),
