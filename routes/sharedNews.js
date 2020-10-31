@@ -34,23 +34,35 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
-    if (err)
+    if (err) {
+      err.status = 400;
       return next(err);
+    }
 
     // We first make sure we are not at the 100 count limit.
     req.db.collection.count({ type: 'SHAREDSTORY_TYPE' }, function (err, count) {
-      if (err)
+      if (err) {
+        err.status = 400;
         return next(err);
+      }
 
-      if (count > process.env.MAX_SHARED_STORIES)
-        return next(new Error('Shared story limit reached'));
+      if (count > process.env.MAX_SHARED_STORIES) {
+        let err = new Error('Shared story limit reached');
+        err.status = 403;
+        return next(err);
+      }
 
       // Make sure the story was not already shared
       req.db.collection.count({ type: 'SHAREDSTORY_TYPE', _id: req.body.storyID }, function (err, count) {
-        if (err)
+        if (err) {
+          err.status = 400;
           return next(err);
-        if (count > 0)
-          return next(new Error('Story was already shared.'));
+        }
+        if (count > 0) {
+          let err = new Error('Story was already shared.');
+          err.status = 403;
+          return next(err);
+        }
 
         // Now we can create this as a shared news story Document.
         // Note that we don't need to worry about simultaneous post requests creating the same story
@@ -68,8 +80,10 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
         };
 
         req.db.collection.insertOne(xferStory, function createUser(err, result) {
-          if (err)
+          if (err) {
+            err.status = 400;
             return next(err);
+          }
 
           res.status(201).json(result.ops[0]);
         });
@@ -83,8 +97,10 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
 //
 router.get('/', authHelper.checkAuth, function (req, res, next) {
   req.db.collection.find({ type: 'SHAREDSTORY_TYPE' }).toArray(function (err, docs) {
-    if (err)
+    if (err) {
+      err.status = 400;
       return next(err);
+    }
 
     res.status(200).json(docs);
   });
@@ -97,10 +113,13 @@ router.delete('/:sid', authHelper.checkAuth, function (req, res, next) {
   req.db.collection.findOneAndDelete({ type: 'SHAREDSTORY_TYPE', _id: req.params.sid }, function (err, result) {
     if (err) {
       console.log("+++POSSIBLE SHARED STORY DELETION CONTENTION ERROR?+++ err:", err);
-      return next(err);
+      err.status = 400;
+      return next(err);  
     } else if (result.ok != 1) {
       console.log("+++POSSIBLE SHARED STORY DELETION CONTENTION ERROR?+++ result:", result);
-      return next(new Error('Shared story deletion failure'));
+      let err = new Error('Shared story deletion failure');
+      err.status = 409;
+      return next(err);  
     }
 
     res.status(200).json({ msg: "Shared story Deleted" });
@@ -117,8 +136,10 @@ router.post('/:sid/Comments', authHelper.checkAuth, function (req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
-    if (err)
+    if (err) {
+      err.status = 400;
       return next(err);
+    }
 
     var xferComment = {
       displayName: req.auth.displayName,
@@ -132,13 +153,18 @@ router.post('/:sid/Comments', authHelper.checkAuth, function (req, res, next) {
       { $push: { comments: xferComment } },
       function (err, result) {
         if (result && result.value == null) {
-          return next(new Error('Comment limit reached'));
+          let err = new Error('Comment limit reached');
+          err.status = 403;
+          return next(err);      
         } else if (err) {
           console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ err:", err);
+          err.status = 409;
           return next(err);
         } else if (result.ok != 1) {
           console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ result:", result);
-          return next(new Error('Comment save failure'));
+          let err = new Error('Comment save failure');
+          err.status = 409;
+          return next(err);    
         }
 
         res.status(201).json({ msg: "Comment added" });

@@ -23,15 +23,23 @@ router.post('/', function postSession(req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
-    if (err)
-      return next(new Error('Invalid field: password 7 to 15 (one number, one special character)'));
+    if (err) {
+      let err = new Error('Invalid field: password 7 to 15 (one number, one special character)');
+      err.status = 400;
+      return next(err);
+    }
 
     req.db.collection.findOne({ type: 'USER_TYPE', email: req.body.email }, function (err, user) {
-      if (err)
+      if (err) {
+        err.status = 400;
         return next(err);
+      }
 
-      if (!user)
-        return next(new Error('User was not found.'));
+      if (!user) {
+        let err = new Error('User was not found.');
+        err.status = 404;
+        return next(err);
+      }
 
       bcrypt.compare(req.body.password, user.passwordHash, function comparePassword(err, match) {
         if (match) {
@@ -39,10 +47,13 @@ router.post('/', function postSession(req, res, next) {
             var token = jwt.encode({ authorized: true, sessionIP: req.ip, sessionUA: req.headers['user-agent'], userId: user._id.toHexString(), displayName: user.displayName }, process.env.JWT_SECRET);
             res.status(201).json({ displayName: user.displayName, userId: user._id.toHexString(), token: token, msg: 'Authorized' });
           } catch (err) {
+            err.status = 400;
             return next(err);
           }
         } else {
-          return next(new Error('Wrong password'));
+          let err = new Error('Wrong password');
+          err.status = 401;
+          return next(err);
         }
       });
     });
@@ -54,8 +65,11 @@ router.post('/', function postSession(req, res, next) {
 //
 router.delete('/:id', authHelper.checkAuth, function (req, res, next) {
   // Verify the passed in id is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for logout'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for logout');
+    err.status = 401;
+    return next(err);
+  }
 
   res.status(200).json({ msg: 'Logged out' });
 });

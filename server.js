@@ -38,7 +38,7 @@ app.enable('trust proxy'); // Since we are behind Nginx load balancing with Elas
 
 // Apply limits to all requests 
 var limiter = new RateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes 
+  windowMs: 3 * 60 * 1000, // 3 minutes 
   max: 100, // limit each IP to 100 requests per windowMs 
   delayMs: 0 // disable delaying - full speed until the max limit is reached 
 });
@@ -95,7 +95,7 @@ var db = {};
 var MongoClient = require('mongodb').MongoClient;
 
 //Use connect method to connect to the Server
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true }, function (err, client) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
   assert.equal(null, err);
   db.client = client;
   db.collection = client.db('newswatcherdb').collection('newswatcher');
@@ -170,7 +170,7 @@ app.use('/api/homenews', homeNews);
 //
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -198,7 +198,6 @@ app.use(function (err, req, res, next) { // eslint-disable-line no-unused-vars
   // }
 });
 
-
 // // Close out the Express middleware usage for AWS X-Ray
 // if (process.env.NODE_ENV === 'production') {
 //   app.use(AWSXRay.express.closeSegment());
@@ -212,4 +211,9 @@ var server = app.listen(app.get('port'), function () {
 
 server.db = db;
 server.node2 = node2;
-module.exports = server;
+console.log(`Worker ${process.pid} started`);
+// }
+
+// server.node2 = node2;
+if (!process.env.RUN_CLUSTERED)
+  module.exports = server;

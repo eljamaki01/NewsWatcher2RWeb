@@ -20,12 +20,17 @@ module.exports.checkAuth = function (req, res, next) {
       if (req.auth && req.auth.authorized && req.auth.userId) {
         return next();
       } else {
-        return next(new Error('User is not logged in.'));
+        let err = new Error('User is not logged in.');
+        err.status = 401;
+        return next(err);
       }
     } catch (err) {
+      err.status = 401;
       return next(err);
     }
   } else {
-    return next(new Error('User is not logged in.'));
+    let err = new Error('User is not logged in.');
+    err.status = 401;
+    return next(err);
   }
 };

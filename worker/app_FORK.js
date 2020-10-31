@@ -25,7 +25,7 @@ const NEWYORKTIMES_CATEGORIES = ["home", "world", "national", "business", "techn
 // MongoDB database connection initialization
 //
 var db = {};
-MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true }, function (err, client) {
+MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
   assert.equal(null, err);
   db.client = client;
   db.collection = client.db('newswatcherdb').collection('newswatcher');
@@ -234,12 +234,17 @@ newsPullBackgroundTimer = setInterval(function () {
                 date: new Date(news.results[j].updated_date).getTime()
               };
               // Only take stories with images
-              if (news.results[j].multimedia.length > 0) {
-                xferNewsStory.imageUrl = news.results[j].multimedia[0].url;
-                allNews.push(xferNewsStory);
-                // Populate the home page stories
-                if (i == 0) {
-                  gDoc.homeNewsStories.push(xferNewsStory);
+              if (news.results[j].multimedia && news.results[j].multimedia.length > 0) {
+                for (var k = 0; k < news.results[j].multimedia.length; k++) {
+                  if (news.results[j].multimedia[k].format == "Standard Thumbnail") {
+                    xferNewsStory.imageUrl = news.results[j].multimedia[k].url;
+                    allNews.push(xferNewsStory);
+                    // Populate the home page stories
+                    if (i == 0) {
+                      gDoc.homeNewsStories.push(xferNewsStory);
+                    }
+                    break;
+                  }
                 }
               }
             }

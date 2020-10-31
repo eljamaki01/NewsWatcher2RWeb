@@ -28,15 +28,23 @@ router.post('/', function postUser(req, res, next) {
   };
 
   joi.validate(req.body, schema, function (err) {
-    if (err)
-      return next(new Error('Invalid field: display name 3 to 50 alpanumeric, valid email, password 7 to 15 (one number, one special character)'));
+    if (err) {
+      let err = new Error('Invalid field: display name 3 to 50 alpanumeric, valid email, password 7 to 15 (one number, one special character)');
+      err.status = 400;
+      return next(err);
+    }
 
     req.db.collection.findOne({ type: 'USER_TYPE', email: req.body.email }, function (err, doc) {
-      if (err)
+      if (err) {
+        err.status = 400;
         return next(err);
+      }
 
-      if (doc)
-        return next(new Error('Email account already registered'));
+      if (doc) {
+        let err = new Error('Email account already registered');
+        err.status = 403;
+        return next(err);
+      }
 
       var xferUser = {
         type: 'USER_TYPE',
@@ -63,13 +71,17 @@ router.post('/', function postUser(req, res, next) {
       };
 
       bcrypt.hash(req.body.password, 10, function getHash(err, hash) {
-        if (err)
+        if (err) {
+          err.status = 400;
           return next(err);
+        }
 
         xferUser.passwordHash = hash;
         req.db.collection.insertOne(xferUser, function createUser(err, result) {
-          if (err)
+          if (err) {
+            err.status = 400;
             return next(err);
+          }
 
           req.node2.send({ msg: 'REFRESH_STORIES', doc: result.ops[0] });
           res.status(201).json(result.ops[0]);
@@ -84,18 +96,24 @@ router.post('/', function postUser(req, res, next) {
 //
 router.delete('/:id', authHelper.checkAuth, function (req, res, next) {
   // Verify that the passed in id to delete is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for account deletion'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for account deletion');
+    err.status = 401;
+    return next(err);
+  }
 
   // MongoDB should do the work of queuing this up and retrying if there is a conflict, According to their documentation.
   // This actually requires a write lock on their part.
   req.db.collection.findOneAndDelete({ type: 'USER_TYPE', _id: ObjectId(req.auth.userId) }, function (err, result) {
     if (err) {
       console.log("+++POSSIBLE USER DELETION CONTENTION ERROR?+++ err:", err);
+      err.status = 409;
       return next(err);
     } else if (result.ok != 1) {
       console.log("+++POSSIBLE USER DELETION CONTENTION ERROR?+++ result:", result);
-      return next(new Error('Account deletion failure'));
+      let err = new Error('Account deletion failure');
+      err.status = 409;
+      return next(err);
     }
 
     res.status(200).json({ msg: "User Deleted" });
@@ -107,12 +125,17 @@ router.delete('/:id', authHelper.checkAuth, function (req, res, next) {
 //
 router.get('/:id', authHelper.checkAuth, function (req, res, next) {
   // Verify that the passed in id to delete is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for account fetch'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for account fetch');
+    err.status = 401;
+    return next(err);
+  }
 
   req.db.collection.findOne({ type: 'USER_TYPE', _id: ObjectId(req.auth.userId) }, function (err, doc) {
-    if (err)
+    if (err) {
+      err.status = 400;
       return next(err);
+    }
 
     var xferProfile = {
       email: doc.email,
@@ -134,12 +157,18 @@ router.get('/:id', authHelper.checkAuth, function (req, res, next) {
 //
 router.put('/:id', authHelper.checkAuth, function (req, res, next) {
   // Verify that the passed in id is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for account deletion'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for account update');
+    err.status = 401;
+    return next(err);
+  }
 
   // Limit the number of newsFilters
-  if (req.body.newsFilters.length > process.env.MAX_FILTERS)
-    return next(new Error('Too many news newsFilters'));
+  if (req.body.newsFilters.length > process.env.MAX_FILTERS) {
+    let err = new Error('Too many news newsFilters');
+    err.status = 403;
+    return next(err);
+  }
 
   // clear out leading and trailing spaces
   for (var i = 0; i < req.body.newsFilters.length; i++) {
@@ -169,6 +198,7 @@ router.put('/:id', authHelper.checkAuth, function (req, res, next) {
     });
   }, function (err) {
     if (err) {
+      err.status = 400;
       return next(err);
     } else {
       // MongoDB implements optomistic concurrency for us.
@@ -182,10 +212,13 @@ router.put('/:id', authHelper.checkAuth, function (req, res, next) {
         function (err, result) {
           if (err) {
             console.log("+++POSSIBLE USER PUT CONTENTION ERROR?+++ err:", err);
+            err.status = 400;
             return next(err);
           } else if (result.ok != 1) {
             console.log("+++POSSIBLE USER PUT CONTENTION ERROR?+++ result:", result);
-            return next(new Error('User PUT failure'));
+            let err = new Error('User PUT failure');
+            err.status = 409;
+            return next(err);
           }
 
           req.node2.send({ msg: 'REFRESH_STORIES', doc: result.value });
@@ -202,8 +235,12 @@ router.put('/:id', authHelper.checkAuth, function (req, res, next) {
 //
 router.post('/:id/savedstories', authHelper.checkAuth, function (req, res, next) {
   // Verify that the passed in id to delete is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for saving story'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for saving story');
+    err.status = 401;
+    return next(err);
+  }
+
 
   // Validate the body
   var schema = {
@@ -219,8 +256,10 @@ router.post('/:id/savedstories', authHelper.checkAuth, function (req, res, next)
   };
 
   joi.validate(req.body, schema, function (err) {
-    if (err)
+    if (err) {
+      err.status = 400;
       return next(err);
+    }
 
     // This uses the MongoDB operators to test the savedStories array to make sure:
     // A. Story is not aready in there.
@@ -234,13 +273,18 @@ router.post('/:id/savedstories', authHelper.checkAuth, function (req, res, next)
       { returnOriginal: true },
       function (err, result) {
         if (result && result.value == null) {
-          return next(new Error('Over the save limit, or story already saved'));
+          let err = new Error('Over the save limit, or story already saved');
+          err.status = 403;
+          return next(err);
         } else if (err) {
           console.log("+++POSSIBLE save story CONTENTION ERROR?+++ err:", err);
+          err.status = 409;
           return next(err);
         } else if (result.ok != 1) {
           console.log("+++POSSIBLE save story CONTENTION ERROR?+++ result:", result);
-          return next(new Error('Story save failure'));
+          let err = new Error('Story save failure');
+          err.status = 409;
+          return next(err);
         }
 
         res.status(200).json(result.value);
@@ -253,8 +297,12 @@ router.post('/:id/savedstories', authHelper.checkAuth, function (req, res, next)
 //
 router.delete('/:id/savedstories/:sid', authHelper.checkAuth, function (req, res, next) {
   // Verify that the passed in id to delete is the same as that in the auth token
-  if (req.params.id != req.auth.userId)
-    return next(new Error('Invalid request for deletion of saved story'));
+  if (req.params.id != req.auth.userId) {
+    let err = new Error('Invalid request for deletion of saved story');
+    err.status = 401;
+    return next(err);
+  }
+
 
   req.db.collection.findOneAndUpdate({ type: 'USER_TYPE', _id: ObjectId(req.auth.userId) },
     { $pull: { savedStories: { storyID: req.params.sid } } },
@@ -262,10 +310,13 @@ router.delete('/:id/savedstories/:sid', authHelper.checkAuth, function (req, res
     function (err, result) {
       if (err) {
         console.log("+++POSSIBLE saved story delete CONTENTION ERROR?+++ err:", err);
+        err.status = 400;
         return next(err);
       } else if (result.ok != 1) {
         console.log("+++POSSIBLE saved story delete CONTENTION ERROR?+++ result:", result);
-        return next(new Error('Story delete failure'));
+        let err = new Error('Story delete failure');
+        err.status = 409;
+        return next(err);
       }
 
       res.status(200).json(result.value);
