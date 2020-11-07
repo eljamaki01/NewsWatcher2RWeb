@@ -10,30 +10,30 @@
 var assert = require('assert');
 
 // To hit production AWS!
-var request = require('supertest')('https://www.newswatcher2rweb.com/');
+// var request = require('supertest')('https://www.newswatcher2rweb.com/');
 
 // run locally, like in vscode debugger and test against that
 // var request = require('supertest')('http://localhost:3000');
 
 // To self launch app and test against it
-// var app = require('../server.js');
-// app.testrun = true;
-// var request = require('supertest')(app);
+var app = require('../server.js');
+app.testrun = true;
+var request = require('supertest')(app);
 
 describe('API endpoint exercising integration tests', function () {
 	// Wait until the database is up and connected to.
-	// before(function (done) {
-	// 	setTimeout(function () {
-	// 		done();
-	// 	}, 5000);
-	// });
+	before(function (done) {
+		setTimeout(function () {
+			done();
+		}, 8000);
+	});
 
 	// // Shut everything down gracefully
-	// after(function (done) {
-	// 	app.db.client.close();
-	// 	app.node2.kill();
-	// 	app.close(done);
-	// });
+	after(function (done) {
+		app.db.client.close();
+		app.node2.kill();
+		app.close(done);
+	});
 
 	describe('User cycle operations', function () {
 		var token;

@@ -30,6 +30,23 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}\\server.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Mocha api_endpoint Tests",
+      "program": "${workspaceRoot}/node_modules/.bin/mocha",
+      "args": [
+        "--timeout",
+        "30000",
+        "${workspaceFolder}/test/functional_api_crud.js"
+      ],
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "disableOptimisticBPs": true
     }
   ]
 }
