@@ -40,7 +40,7 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
     }
 
     // We first make sure we are not at the 100 count limit.
-    req.db.collection.count({ type: 'SHAREDSTORY_TYPE' }, function (err, count) {
+    req.db.collection.countDocuments({ type: 'SHAREDSTORY_TYPE' }, function (err, count) {
       if (err) {
         err.status = 400;
         return next(err);
@@ -53,7 +53,7 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
       }
 
       // Make sure the story was not already shared
-      req.db.collection.count({ type: 'SHAREDSTORY_TYPE', _id: req.body.storyID }, function (err, count) {
+      req.db.collection.countDocuments({ type: 'SHAREDSTORY_TYPE', _id: req.body.storyID }, function (err, count) {
         if (err) {
           err.status = 400;
           return next(err);
@@ -79,14 +79,35 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
           }]
         };
 
-        req.db.collection.insertOne(xferStory, function createUser(err, result) {
-          if (err) {
-            err.status = 400;
-            return next(err);
-          }
+        // req.db.collection.insertOne(xferStory, function createUser(err, result) {
+        //   if (err) {
+        //     err.status = 400;
+        //     return next(err);
+        //   }
 
-          res.status(201).json(result.ops[0]);
-        });
+        //   res.status(201).json(result.ops[0]);
+        // });
+        req.db.collection.findOneAndReplace({ type: 'SHAREDSTORY_TYPE', _id: req.body.storyID }, xferStory, { upsert: true, returnOriginal: false },
+          function (err, result) {
+            // if (result && result.value == null) {
+            //   let err = new Error('Comment limit reached');
+            //   err.status = 403;
+            //   return next(err);      
+            // } else
+            if (err) {
+              console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ err:", err);
+              err.status = 409;
+              return next(err);
+            } else if (result.ok != 1) {
+              console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ result:", result);
+              let err = new Error('Shared story save failure');
+              err.status = 409;
+              return next(err);
+            }
+
+            // res.status(201).json({ msg: "Comment added" });
+            res.status(201).json(result.value);
+          });
       });
     });
   });
@@ -114,12 +135,12 @@ router.delete('/:sid', authHelper.checkAuth, function (req, res, next) {
     if (err) {
       console.log("+++POSSIBLE SHARED STORY DELETION CONTENTION ERROR?+++ err:", err);
       err.status = 400;
-      return next(err);  
+      return next(err);
     } else if (result.ok != 1) {
       console.log("+++POSSIBLE SHARED STORY DELETION CONTENTION ERROR?+++ result:", result);
       let err = new Error('Shared story deletion failure');
       err.status = 409;
-      return next(err);  
+      return next(err);
     }
 
     res.status(200).json({ msg: "Shared story Deleted" });
@@ -155,7 +176,7 @@ router.post('/:sid/Comments', authHelper.checkAuth, function (req, res, next) {
         if (result && result.value == null) {
           let err = new Error('Comment limit reached');
           err.status = 403;
-          return next(err);      
+          return next(err);
         } else if (err) {
           console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ err:", err);
           err.status = 409;
@@ -164,7 +185,7 @@ router.post('/:sid/Comments', authHelper.checkAuth, function (req, res, next) {
           console.log("+++POSSIBLE COMMENT CONTENTION ERROR?+++ result:", result);
           let err = new Error('Comment save failure');
           err.status = 409;
-          return next(err);    
+          return next(err);
         }
 
         res.status(201).json({ msg: "Comment added" });
