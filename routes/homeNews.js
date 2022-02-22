@@ -1,9 +1,7 @@
-﻿//
+//
 // homeNews.js: A Node.js Module for for home news story management.
 //
 //
-
-"use strict";
 var express = require('express');
 var router = express.Router();
 var cachedDoc = null;

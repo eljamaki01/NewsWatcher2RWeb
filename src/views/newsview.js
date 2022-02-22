@@ -1,32 +1,28 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom"
 import PropTypes from 'prop-types';
-import { FormGroup, FormControl, Media } from 'react-bootstrap';
-import { connect } from 'react-redux'
+import { FormSelect, FormGroup, Card } from 'react-bootstrap';
 import { toHours } from '../utils/utils';
 import '../App.css';
 
-class NewsView extends Component {
-  constructor(props) {
-    super(props);
+function NewsView(props) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [newsState, setNewsState] = useState({ isLoading: true, newsFilters: null });
+  const navigate = useNavigate();
 
-    this.state = {
-      selectedIdx: 0
-    };
-  }
-
-  componentDidMount() {
-    if (!this.props.session) {
-      return window.location.hash = "";
+  useEffect(() => {
+    if (!props.session) {
+      return navigate("/")
     }
 
-    const { dispatch } = this.props
-    dispatch({ type: 'REQUEST_NEWS' });
-    fetch(`/api/users/${this.props.session.userId}`, {
+    const { dispatch } = props
+    setNewsState({ isLoading: true, newsFilters: [] });
+    fetch(`/api/users/${props.session.userId}`, {
       method: 'GET',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': props.session.token
       }),
-      cache: 'default' // no-store or no-cache?
+      cache: 'default'
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
@@ -38,29 +34,30 @@ class NewsView extends Component {
             response.json.newsFilters[i].newsStories[j].hours = toHours(response.json.newsFilters[i].newsStories[j].date);
           }
         }
-        dispatch({ type: 'RECEIVE_NEWS_SUCCESS', newsFilters: response.json.newsFilters });
+        setNewsState({ isLoading: false, newsFilters: response.json.newsFilters });
         dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
       })
       .catch(error => {
         dispatch({ type: 'MSG_DISPLAY', msg: `News fetch failed: ${error.message}` });
       });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+  const handleChangeFilter = (event) => {
+    setSelectedIdx(parseInt(event.target.value, 10));
   }
 
-  handleChangeFilter = (event) => {
-    this.setState({ selectedIdx: parseInt(event.target.value, 10) });
-  }
-
-  handleShareStory = (index, event) => {
-    const { dispatch } = this.props
+  const handleShareStory = (index, event) => {
+    const { dispatch } = props
     event.preventDefault();
     fetch('/api/sharednews', {
       method: 'POST',
       headers: new Headers({
-        'x-auth': this.props.session.token,
+        'x-auth': props.session.token,
         'Content-Type': 'application/json'
       }),
-      cache: 'default', // no-store or no-cache ro default?
-      body: JSON.stringify(this.props.newsFilters[this.state.selectedIdx].newsStories[index])
+      cache: 'default',
+      body: JSON.stringify(newsState.newsFilters[selectedIdx].newsStories[index])
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
@@ -74,67 +71,67 @@ class NewsView extends Component {
       });
   }
 
-  render() {
-    if (this.props.isLoading) {
-      return (
-        <h1>Loading news...</h1>
-      );
-    }
+  if (newsState.isLoading) {
+    return (
+      <h1>Loading news...</h1>
+    );
+  } else {
     return (
       <div>
         <h1>News</h1 >
         <FormGroup controlId="formControlsSelect">
-          <FormControl bsSize="sm" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
-            {this.props.newsFilters.map((filter, idx) =>
+          <FormSelect aria-label="News filter selection" onChange={handleChangeFilter} value={selectedIdx}>
+            {newsState.newsFilters.map((filter, idx) =>
               <option key={idx} value={idx}>{filter.name}</option>
             )}
-          </FormControl>
+          </FormSelect>
         </FormGroup>
         <hr />
-        <Media.List>
-          {this.props.newsFilters[this.state.selectedIdx].newsStories.map((story, idx) =>
-            <Media.ListItem key={idx}>
-              <Media.Left>
-                <a href={story.link} target="_blank" rel="noopener noreferrer">
-                  <img alt="" className="media-object" src={story.imageUrl} />
-                </a>
-              </Media.Left>
-              <Media.Body>
-                <Media.Heading><b>{story.title}</b></Media.Heading>
-                <p>{story.contentSnippet}</p>
-                {story.source} <span>{story.hours}</span>
-                <Media.Body>
-                  <a style={{ cursor: 'pointer' }} onClick={(event) => this.handleShareStory(idx, event)}>Share</a>
-                </Media.Body>
-              </Media.Body>
-            </Media.ListItem>
-          )}
-          <Media.ListItem key={this.props.newsFilters[this.state.selectedIdx].newsStories.length}>
-            <Media.Left>
+        <Card bg="light" key={newsState.newsFilters[selectedIdx].newsStories.length}>
+          <div className="row g-0">
+            <div className="col-md-4">
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />
               </a>
-            </Media.Left>
-            <Media.Body>
-              <Media.Heading><b>Data provided by The New York Times</b></Media.Heading>
-            </Media.Body>
-          </Media.ListItem>
-        </Media.List>
+            </div>
+            <div className="col-md-8">
+              <Card.Body>
+                <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
+                  <h5 className="card-title"><b>Data provided by The New York Times</b></h5>
+                </a>
+              </Card.Body>
+            </div>
+          </div>
+        </Card>
+        <ul>
+          {newsState.newsFilters[selectedIdx].newsStories.map((newsStory, idx) =>
+            <Card bg="light" key={idx}>
+              <div className="row g-0">
+                <div className="col-md-4">
+                  <a href={newsStory.link} target="_blank" rel="noopener noreferrer">
+                    <img alt="" style={{ height: 150 }} src={newsStory.imageUrl} crossOrigin="true" />
+                  </a>
+                </div>
+                <div className="col-md-8">
+                  <Card.Body>
+                    <h5 className="card-title"><b>{newsStory.title}</b></h5>
+                    <p className="card-text">{newsStory.contentSnippet}</p>
+                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hours}</span></small></p>
+                    <p className="card-text"><small className="text-muted"><button type="button" className="btn btn-link" onClick={(event) => handleShareStory(idx, event)}>Share</button></small></p>
+                  </Card.Body>
+                </div>
+              </div>
+            </Card>
+          )}
+        </ul>
       </div>
     );
   }
 }
 
 NewsView.propTypes = {
+  session: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired
 };
 
-const mapStateToProps = state => {
-  return {
-    session: state.app.session,
-    newsFilters: state.news.newsFilters,
-    isLoading: state.news.isLoading
-  }
-}
-
-export default connect(mapStateToProps)(NewsView)
+export default NewsView

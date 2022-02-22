@@ -1,5 +1,6 @@
 import React from 'react';
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Glyphicon } from 'react-bootstrap';
+import { Form, FormGroup, FormLabel, FormControl } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export function toHours(date) {
   var d1 = date;
@@ -12,12 +13,12 @@ export function toHours(date) {
   }
 }
 
-export function FieldGroup({ id, glyph, label, help, ...props }) {
+export function FieldGroup({ id, icon, label, help, ...props }) {
   return (
     <FormGroup controlId={id}>
-      <ControlLabel><Glyphicon glyph={glyph} /> {label}</ControlLabel>
+      <FormLabel><FontAwesomeIcon icon={icon} /> {label}</FormLabel>
       <FormControl {...props} />
-      {help && <HelpBlock>{help}</HelpBlock>}
+      {help && <Form.Text className="text-muted">{help}</Form.Text>}
     </FormGroup>
   );
 }

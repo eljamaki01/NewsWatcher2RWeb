@@ -1,33 +1,33 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom"
 import PropTypes from 'prop-types';
-import { FormGroup, ControlLabel, Button, Modal, Glyphicon, Media } from 'react-bootstrap';
-import { connect } from 'react-redux'
+import { Form, FormGroup, FormLabel, Button, Modal, Card } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPowerOff, faWindowClose, faUser } from '@fortawesome/free-solid-svg-icons'
 import { FieldGroup, toHours } from '../utils/utils';
 import '../App.css';
 
-class SharedNewsView extends Component {
-  constructor(props) {
-    super(props);
 
-    this.state = {
-      comment: "",
-      selectedStoryIdx: 0
-    };
-  }
+function SharedNewsView(props) {
+  const [comment, setComment] = useState("");
+  const [selectedStoryIdx, setSelectedStoryIdx] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [newsState, setNewsState] = useState({ isLoading: true, news: null });
+  const navigate = useNavigate();
 
-  componentDidMount() {
-    if (!this.props.session) {
-      return window.location.hash = "";
+  useEffect(() => {
+    if (!props.session) {
+      return navigate("/")
     }
 
-    const { dispatch } = this.props
-    dispatch({ type: 'REQUEST_SHAREDNEWS' });
+    const { dispatch } = props
+    setNewsState({ isLoading: true, news: [] });
     fetch('/api/sharednews', {
       method: 'GET',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': props.session.token
       }),
-      cache: 'default' // no-store or no-cache?
+      cache: 'default'
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
@@ -37,42 +37,45 @@ class SharedNewsView extends Component {
         for (var i = 0; i < response.json.length; i++) {
           response.json[i].story.hours = toHours(response.json[i].story.date);
         }
-        dispatch({ type: 'RECEIVE_SHAREDNEWS_SUCCESS', news: response.json });
+        setNewsState({ isLoading: false, news: response.json });
         dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
       })
       .catch(error => {
         dispatch({ type: 'MSG_DISPLAY', msg: `Shared News fetch failed: ${error.message}` });
       });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleOpenModal = (index, event) => {
+    setSelectedStoryIdx(index);
+    setShowModal(true);
   }
 
-  handleOpenModal = (index, event) => {
-    this.setState({ selectedStoryIdx: index, showModal: true });
+  const handleCloseModal = (event) => {
+    setShowModal(false);
   }
 
-  handleCloseModal = (event) => {
-    this.setState({ showModal: false });
-  }
-
-  handleAddComment = (event) => {
-    const { dispatch } = this.props
+  const handleAddComment = (event) => {
+    const { dispatch } = props
     event.preventDefault();
-    fetch(`/api/sharednews/${this.props.news[this.state.selectedStoryIdx].story.storyID}/Comments`, {
+    fetch(`/api/sharednews/${newsState.news[selectedStoryIdx].story.storyID}/Comments`, {
       method: 'POST',
       headers: new Headers({
-        'x-auth': this.props.session.token,
+        'x-auth': props.session.token,
         'Content-Type': 'application/json'
       }),
-      cache: 'default', // no-store or no-cache ro default?
-      body: JSON.stringify({ comment: this.state.comment })
+      cache: 'default',
+      body: JSON.stringify({ comment: comment })
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
         if (!response.ok || response.status !== 201) {
           throw new Error(response.json.message);
         }
-        var storyIdx = this.state.selectedStoryIdx;
-        dispatch({ type: 'ADD_COMMENT_SUCCESS', comment: this.state.comment, displayName: this.props.session.displayName, storyIdx: storyIdx });
-        this.setState({ showModal: false, comment: "" });
+        let newNewsArray = [...newsState.news];
+        newNewsArray[selectedStoryIdx].comments.push({ displayName: props.session.displayName, comment: comment });
+        setNewsState({ isLoading: newsState.isLoading, news: newNewsArray });
+        setComment("");
+        setShowModal(false);
         dispatch({ type: 'MSG_DISPLAY', msg: "Comment added" });
       })
       .catch(error => {
@@ -80,57 +83,66 @@ class SharedNewsView extends Component {
       });
   }
 
-  handleCommentChange = (event) => {
-    this.setState({ comment: event.target.value });
+  const handleCommentChange = (event) => {
+    setComment(event.target.value);
   }
 
-  render() {
-    if (this.props.isLoading) {
-      return (
-        <h1>Loading shared news...</h1>
-      );
-    }
+  if (newsState.isLoading) {
+    return (
+      <h1>Loading shared news...</h1>
+    );
+  } else {
     return (
       <div>
         <h1>Shared News</h1 >
-        <Media.List>
-          {this.props.news.map((sharedStory, idx) =>
-            <Media.ListItem key={idx}>
-              <Media.Left>
-                <a href={sharedStory.story.link} target="_blank" rel="noopener noreferrer">
-                  <img alt="" className="media-object" src={sharedStory.story.imageUrl} />
-                </a>
-              </Media.Left>
-              <Media.Body>
-                <Media.Heading><b>{sharedStory.story.title}</b></Media.Heading>
-                <p>{sharedStory.story.contentSnippet}</p>
-                {sharedStory.story.source} - <span>{sharedStory.story.hours}</span>
-                <a style={{ cursor: 'pointer' }} onClick={(event) => this.handleOpenModal(idx, event)}> Comments</a>
-              </Media.Body>
-            </Media.ListItem>
-          )}
-          <Media.ListItem key={this.props.news.length}>
-            <Media.Left>
+        <Card bg="light" key={newsState.news.length}>
+          <div className="row g-0">
+            <div className="col-md-4">
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />
               </a>
-            </Media.Left>
-            <Media.Body>
-              <Media.Heading><b>Data provided by The New York Times</b></Media.Heading>
-            </Media.Body>
-          </Media.ListItem>
-        </Media.List>
-        {this.props.news.length > 0 &&
-          <Modal show={this.state.showModal} onHide={this.handleCloseModal}>
+            </div>
+            <div className="col-md-8">
+              <Card.Body>
+                <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
+                  <h5 className="card-title"><b>Data provided by The New York Times</b></h5>
+                </a>
+              </Card.Body>
+            </div>
+          </div>
+        </Card>
+        <ul>
+          {newsState.news.map((sharedStory, idx) =>
+            <Card bg="light" key={idx}>
+              <div className="row g-0">
+                <div className="col-md-4">
+                  <a href={sharedStory.story.link} target="_blank" rel="noopener noreferrer">
+                    <img alt="" style={{ height: 150 }} src={sharedStory.story.imageUrl} crossOrigin="true" />
+                  </a>
+                </div>
+                <div className="col-md-8">
+                  <Card.Body>
+                    <h5 className="card-title"><b>{sharedStory.story.title}</b></h5>
+                    <p className="card-text">{sharedStory.story.contentSnippet}</p>
+                    <p className="card-text"><small className="text-muted">{sharedStory.story.source} - <span>{sharedStory.story.hours}</span></small></p>
+                    <p className="card-text"><small className="text-muted"><button type="button" className="btn btn-link" onClick={(event) => handleOpenModal(idx, event)}>Comments</button></small></p>
+                  </Card.Body>
+                </div>
+              </div>
+            </Card>
+          )}
+        </ul>
+        {newsState.news.length > 0 &&
+          <Modal show={showModal} onHide={handleCloseModal}>
             <Modal.Header closeButton>
               <Modal.Title>Add Comment</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <form onSubmit={this.handleAddComment}>
+              <Form onSubmit={handleAddComment}>
                 <FormGroup controlId="commentList">
-                  <ControlLabel><Glyphicon glyph="user" /> Comments</ControlLabel>
+                  <FormLabel><FontAwesomeIcon icon={faUser} /> Comments</FormLabel>
                   <ul style={{ height: '10em', overflow: 'auto', 'overflow-x': 'hidden' }}>
-                    {this.props.news[this.state.selectedStoryIdx].comments.map(comment =>
+                    {newsState.news[selectedStoryIdx].comments.map(comment =>
                       <li>
                         <div>
                           <p>'{comment.comment}' - {comment.displayName} </p>
@@ -139,25 +151,25 @@ class SharedNewsView extends Component {
                     )}
                   </ul>
                 </FormGroup>
-                {this.props.news[this.state.selectedStoryIdx].comments.length < 30 &&
+                {newsState.news[selectedStoryIdx].comments.length < 30 &&
                   <div>
                     <FieldGroup
                       id="formControlsComment"
                       type="text"
-                      glyph="user"
+                      icon={faUser}
                       label="Comment"
                       placeholder="Enter your comment"
-                      onChange={this.handleCommentChange}
+                      onChange={handleCommentChange}
                     />
-                    <Button disabled={this.state.comment.length === 0} bsStyle="success" bsSize="lg" block type="submit">
-                      <Glyphicon glyph="off" /> Add
+                    <Button disabled={comment.length === 0} bsstyle="success" bssize="lg" block="true" type="submit">
+                      <FontAwesomeIcon icon={faPowerOff} /> Add
                     </Button>
                   </div>
                 }
-              </form>
+              </Form>
             </Modal.Body>
             <Modal.Footer>
-              <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Close</Button>
+              <Button bsstyle="danger" bssize="lg" onClick={handleCloseModal}><FontAwesomeIcon icon={faWindowClose} /> Close</Button>
             </Modal.Footer>
           </Modal>
         }
@@ -167,16 +179,8 @@ class SharedNewsView extends Component {
 }
 
 SharedNewsView.propTypes = {
+  session: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired
 };
 
-const mapStateToProps = state => {
-  return {
-    session: state.app.session,
-    news: state.sharednews.news,
-    isLoading: state.sharednews.isLoading
-  }
-}
-
-export default connect(mapStateToProps)(SharedNewsView)
-
+export default SharedNewsView

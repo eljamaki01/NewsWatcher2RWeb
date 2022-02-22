@@ -1,10 +1,7 @@
-﻿//
+//
 // authHelper.js: A Node.js Module to inject middleware that validates the request header User token.
 //
-
-"use strict";
-var jwt = require('jwt-simple');
-
+var jwt = require("jwt-simple");
 //
 // Check for a token in the custom header setting and verify that it is
 // signed and has not been tampered with.
@@ -16,6 +13,7 @@ module.exports.checkAuth = function (req, res, next) {
     try {
       req.auth = jwt.decode(req.headers['x-auth'], process.env.JWT_SECRET);
 
+      // Could verify that token was from the same origionating machine as this request, test would be as follows
       // if (req.auth && req.auth.authorized && req.auth.userId && req.auth.sessionIP===req.ip && req.auth.sessionUA===req.headers['user-agent']) {
       if (req.auth && req.auth.authorized && req.auth.userId) {
         return next();

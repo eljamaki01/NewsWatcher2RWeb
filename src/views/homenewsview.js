@@ -1,15 +1,12 @@
-import React, { Component } from 'react';
-import { Media } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card } from 'react-bootstrap';
 import { toHours } from '../utils/utils';
 import '../App.css';
 
-class HomeNewsView extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { isLoading: true, news: null };
-  }
 
-  componentDidMount() {
+function HomeNewsView(props) {
+  const [state, setState] = useState({ isLoading: true, news: null });
+  useEffect(() => {
     return fetch('/api/homenews', {
       method: 'GET',
       cache: 'default'
@@ -22,52 +19,56 @@ class HomeNewsView extends Component {
         for (var i = 0; i < response.json.length; i++) {
           response.json[i].hours = toHours(response.json[i].date);
         }
-        this.setState({
-          isLoading: false,
-          news: response.json
-        });
-        this.props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
+        setState({ isLoading: false, news: response.json });
+        props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
       })
       .catch(error => {
-        this.props.dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${error.message}` });
+        props.dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${error.message}` });
       });
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  render() {
-    if (this.state.isLoading) {
-      return (
-        <h1>Loading home page news...</h1>
-      );
-    }
+  if (state.isLoading) {
+    return (<h1 data-testid="loading_id">Loading home page news...</h1>);
+  } else {
     return (
       <div>
-        <h1>Home Page News</h1 >
-        <Media.List>
-          {this.state.news.map((newsStory, idx) =>
-            <Media.ListItem key={idx}>
-              <Media.Left>
-                <a href={newsStory.link} target="_blank" rel="noopener noreferrer">
-                  <img alt="" className="media-object" src={newsStory.imageUrl} />
-                </a>
-              </Media.Left>
-              <Media.Body>
-                <Media.Heading><b>{newsStory.title}</b></Media.Heading>
-                <p>{newsStory.contentSnippet}</p>
-                {newsStory.source} - <span>{newsStory.hours}</span>
-              </Media.Body>
-            </Media.ListItem>
-          )}
-          <Media.ListItem key={this.state.news.length}>
-            <Media.Left>
+        <h1 data-testid="homepage_heading_id">Home Page News</h1>
+        <Card bg="light" key={state.news.length}>
+          <div className="row g-0">
+            <div className="col-md-4">
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
                 <img alt="" src="poweredby_nytimes_30b.png" />
               </a>
-            </Media.Left>
-            <Media.Body>
-              <Media.Heading><b>Data provided by The New York Times</b></Media.Heading>
-            </Media.Body>
-          </Media.ListItem>
-        </Media.List>
+            </div>
+            <div className="col-md-8">
+              <Card.Body>
+                <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
+                  <h5 className="card-title"><b>Data provided by The New York Times</b></h5>
+                </a>
+              </Card.Body>
+            </div>
+          </div>
+        </Card>
+        <ul>
+          {state.news.map((newsStory, idx) =>
+            <Card bg="light" key={idx}>
+              <div className="row g-0">
+                <div className="col-md-4">
+                  <a href={newsStory.link} target="_blank" rel="noopener noreferrer">
+                    <img alt="" style={{ height: 150 }} src={newsStory.imageUrl} crossOrigin="true" />
+                  </a>
+                </div>
+                <div className="col-md-8">
+                  <Card.Body>
+                    <h5 className="card-title"><b data-testid="story-name_id">{newsStory.title}</b></h5>
+                    <p className="card-text">{newsStory.contentSnippet}</p>
+                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hours}</span></small></p>
+                  </Card.Body>
+                </div>
+              </div>
+            </Card>
+          )}
+        </ul>
       </div>
     );
   }

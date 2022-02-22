@@ -1,0 +1,19 @@
+{
+  "name": "NYTLambda",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Lambda to interface with NYT API",
+  "main": "NYTStoriesRefresh.js",
+  "author": {
+    "name": "BUSHMAN",
+    "email": "jsdevstack@outlook.com"
+  },
+  "scripts": {
+    "zipLambda": "zip -r lambda.zip NYTStoriesRefresh.js package.json node_modules"
+  },
+  "dependencies": {
+    "async": "^3.2.3",
+    "bcryptjs": "^2.4.3",
+    "mongodb": "^4.3.1"
+  }
+}

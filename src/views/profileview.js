@@ -1,34 +1,33 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom"
 import PropTypes from 'prop-types';
-import { FormGroup, FormControl, Checkbox, Button, Modal, Glyphicon, ButtonToolbar } from 'react-bootstrap';
-import { connect } from 'react-redux'
+import { Form, FormSelect, FormGroup, FormCheck, Button, Modal, ButtonToolbar } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPowerOff, faTrashAlt, faPlus, faSave, faWindowClose } from '@fortawesome/free-solid-svg-icons'
 import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
-class ProfileView extends Component {
-  constructor(props) {
-    super(props);
+function ProfileView(props) {
+  const [user, setUser] = useState(null);
+  const [deleteOK, setDeleteOK] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
-    this.state = {
-      deleteOK: false,
-      selectedIdx: 0,
-      showModal: false
-    };
-  }
-
-  componentDidMount() {
-    if (!this.props.session) {
-      return window.location.hash = "";
+  useEffect(() => {
+    if (!props.session) {
+      return navigate("/")
     }
 
-    const { dispatch } = this.props
+    const { dispatch } = props;
     dispatch({ type: 'REQUEST_PROFILE' });
-    fetch(`/api/users/${this.props.session.userId}`, {
+    fetch(`/api/users/${props.session.userId}`, {
       method: 'GET',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': props.session.token,
+        'Content-Type': 'application/json'
       }),
-      cache: 'default' // no-store or no-cache?
+      cache: 'default'
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
@@ -38,30 +37,30 @@ class ProfileView extends Component {
         for (var i = 0; i < response.json.newsFilters.length; i++) {
           response.json.newsFilters[i].keywordsStr = response.json.newsFilters[i].keyWords.join(',');
         }
-        dispatch({ type: 'RECEIVE_PROFILE_SUCCESS', user: response.json });
+        setUser(response.json);
         dispatch({ type: 'MSG_DISPLAY', msg: "Profile fetched" });
       })
       .catch(error => {
         dispatch({ type: 'MSG_DISPLAY', msg: `Profile fetch failed: ${error.message}` });
       });
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  handleUnRegister = (event) => {
-    const { dispatch } = this.props
+  const handleUnRegister = (event) => {
+    const { dispatch } = props
     event.preventDefault();
-    fetch(`/api/users/${this.props.session.userId}`, {
+    fetch(`/api/users/${props.session.userId}`, {
       method: 'DELETE',
       headers: new Headers({
-        'x-auth': this.props.session.token
+        'x-auth': props.session.token
       }),
-      cache: 'default' // no-store or no-cache?
+      cache: 'default'
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
         if (!response.ok || response.status !== 200) {
           throw new Error(response.json.message);
         }
-        this.props.appLogoutCB();
+        props.appLogoutCB();
         dispatch({ type: 'MSG_DISPLAY', msg: "Account deleted" });
       })
       .catch(error => {
@@ -69,55 +68,81 @@ class ProfileView extends Component {
       });
   }
 
-  handleNameChange = (event) => {
-    this.props.dispatch({ type: 'ALTER_FILTER_NAME', filterIdx: this.state.selectedIdx, value: event.target.value });
+  const handleNameChange = (event) => {
+    setUser(prevUser => {
+      let newNewFilters = [...prevUser.newsFilters];
+      newNewFilters[selectedIdx].name = event.target.value;
+      return { ...prevUser, newsFilters: newNewFilters };
+    });
   }
 
-  handleKeywordsChange = (event) => {
-    this.props.dispatch({ type: 'ALTER_FILTER_KEYWORDS', filterIdx: this.state.selectedIdx, value: event.target.value });
+  const handleKeywordsChange = (event) => {
+    setUser(prevUser => {
+      let newNewFilters = [...prevUser.newsFilters];
+      newNewFilters[selectedIdx].keywordsStr = event.target.value;
+      newNewFilters[selectedIdx].keyWords = event.target.value.split(',');
+      return { ...prevUser, newsFilters: newNewFilters };
+    });
   }
 
-  handleOpenModal = (event) => {
-    this.setState({ showModal: true });
+  const handleOpenModal = (event) => {
+    setShowModal(true);
   }
 
-  handleCloseModal = (event) => {
-    this.setState({ showModal: false });
+  const handleCloseModal = (event) => {
+    setShowModal(false);
   }
 
-  handleChangeFilter = (event) => {
-    this.setState({ selectedIdx: parseInt(event.target.value, 10) });
+  const handleChangeFilter = (event) => {
+    setSelectedIdx(parseInt(event.target.value, 10));
   }
 
-  handleAdd = (event) => {
-    const { dispatch } = this.props
+  const handleAdd = (event) => {
+    const { dispatch } = props
     event.preventDefault();
-    if (this.props.user.newsFilters.length === 5) {
+    if (user.newsFilters.length === 5) {
       dispatch({ type: 'MSG_DISPLAY', msg: "No more newsFilters allowed" });
     } else {
-      var len = this.props.user.newsFilters.length;
-      dispatch({ type: 'ADD_FILTER' });
-      this.setState({ selectedIdx: len });
+      var len = user.newsFilters.length;
+      setUser(prevUser => {
+        let newNewFilters = [...prevUser.newsFilters];
+        newNewFilters.push({
+          name: 'New Filter',
+          keyWords: ["Keyword"],
+          keywordsStr: "Keyword",
+          enableAlert: false,
+          alertFrequency: 0,
+          enableAutoDelete: false,
+          deleteTime: 0,
+          timeOfLastScan: 0
+        });
+        return { ...prevUser, newsFilters: newNewFilters };
+      });
+      setSelectedIdx(len);
     }
   }
 
-  handleDelete = (event) => {
+  const handleDelete = (event) => {
     event.preventDefault();
-    this.props.dispatch({ type: 'DELETE_FILTER', selectedIdx: this.state.selectedIdx });
-    this.setState({ selectedIdx: 0 });
+    setUser(prevUser => {
+      let newNewFilters = [...prevUser.newsFilters];
+      newNewFilters.splice(selectedIdx, 1);
+      return { ...prevUser, newsFilters: newNewFilters };
+    });
+    setSelectedIdx(0);
   }
 
-  handleSave = (event) => {
-    const { dispatch } = this.props
+  const handleSave = (event) => {
+    const { dispatch } = props
     event.preventDefault();
-    fetch(`/api/users/${this.props.session.userId}`, {
+    fetch(`/api/users/${props.session.userId}`, {
       method: 'PUT',
       headers: new Headers({
-        'x-auth': this.props.session.token,
+        'x-auth': props.session.token,
         'Content-Type': 'application/json'
       }),
-      cache: 'default', // no-store or no-cache ro default?
-      body: JSON.stringify(this.props.user)
+      cache: 'default',
+      body: JSON.stringify(user)
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
       .then(response => {
@@ -131,70 +156,69 @@ class ProfileView extends Component {
       });
   }
 
-  handleCheckboxChange = (event) => {
-    this.setState({ deleteOK: event.target.checked });
-  }
-
-  render() {
-    if (this.props.isLoading) {
-      return (
-        <h1>Loading profile...</h1>
-      );
-    }
+  // *****************************************
+  // Rendering of main view UI for the Profile
+  // *****************************************
+  if (!user) {
+    return (<h1>Loading profile...</h1>);
+  } else {
     return (
       <div>
         <h1>Profile: News Filters</h1>
-        <FormGroup controlId="formControlsSelect">
-          <FormControl bsSize="sm" componentClass="select" placeholder="select" onChange={this.handleChangeFilter} value={this.state.selectedIdx}>
-            {this.props.user.newsFilters.map((filter, idx) =>
-              <option key={idx} value={idx}>{filter.name}</option>
-            )}
-          </FormControl>
-        </FormGroup>
+        <Form>
+          <FormGroup controlId="formControlsSelect">
+            <FormSelect aria-label="News filter selection" onChange={handleChangeFilter} value={selectedIdx}>
+              {user.newsFilters.map((filter, idx) =>
+                <option key={idx} value={idx}>{filter.name}</option>
+              )}
+            </FormSelect>
+          </FormGroup>
+        </Form>
         <hr />
-        <form>
+        <Form>
           <FieldGroup
             id="formControlsName"
             type="text"
             label="Name"
             placeholder="NewFilter"
-            onChange={this.handleNameChange}
-            value={this.props.user.newsFilters[this.state.selectedIdx].name}
+            onChange={handleNameChange}
+            value={user.newsFilters[selectedIdx].name}
           />
           <FieldGroup
             id="formControlsKeywords"
             type="text"
             label="Keywords"
             placeholder="Keywords"
-            onChange={this.handleKeywordsChange}
-            value={this.props.user.newsFilters[this.state.selectedIdx].keywordsStr}
+            onChange={handleKeywordsChange}
+            value={user.newsFilters[selectedIdx].keywordsStr}
           />
-          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+          <div className="btn-group btn-group-justified" role="group" aria-label="...">
             <ButtonToolbar>
-              <Button disabled={this.props.user.newsFilters.length > 4} bsStyle="primary" bsSize="sm" onClick={this.handleAdd}><Glyphicon glyph="plus" /> Add</Button>
-              <Button disabled={this.props.user.newsFilters.length < 2} bsStyle="primary" bsSize="sm" onClick={this.handleDelete}><Glyphicon glyph="trash" /> Delete</Button>
-              <Button bsStyle="primary" bsSize="sm" onClick={this.handleSave}><Glyphicon glyph="save" /> Save</Button>
+              <Button disabled={user.newsFilters.length > 4} bsstyle="primary" bssize="sm" onClick={handleAdd}><FontAwesomeIcon icon={faPlus} /> Add</Button>
+              <Button disabled={user.newsFilters.length < 2} bsstyle="primary" bssize="sm" onClick={handleDelete}><FontAwesomeIcon icon={faTrashAlt} /> Delete</Button>
+              <Button bsstyle="primary" bssize="sm" onClick={handleSave}><FontAwesomeIcon icon={faSave} /> Save</Button>
             </ButtonToolbar>
           </div>
-        </form>
+        </Form>
         <hr />
-        <p>No longer have a need for NewsWatcher? <a id="deleteLink" style={{ cursor: 'pointer' }} onClick={this.handleOpenModal}>Delete your NewsWatcher Account</a></p>
-        <Modal show={this.state.showModal} onHide={this.handleCloseModal}>
+        <p>No longer have a need for NewsWatcher? <button id="deleteLink" style={{ cursor: 'pointer' }} onClick={handleOpenModal}>Delete your NewsWatcher Account</button></p>
+        <Modal show={showModal} onHide={handleCloseModal}>
           <Modal.Header closeButton>
             <Modal.Title>Un-Register</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <form onSubmit={this.handleUnRegister}>
-              <Checkbox checked={this.state.deleteOK} onChange={this.handleCheckboxChange}>
-                Check if you are sure you want to delete your NewsWatcher account
-              </Checkbox>
-              <Button disabled={!this.state.deleteOK} bsStyle="success" bsSize="lg" block type="submit">
-                <Glyphicon glyph="off" /> Delete NewsWatcher Account
+            <Form onSubmit={handleUnRegister}>
+              <FormCheck type="checkbox"
+                label="Check if you are sure you want to delete your NewsWatcher account"
+                checked={deleteOK}
+                onChange={(event) => setDeleteOK(event.target.checked)} />
+              <Button disabled={!deleteOK} bsstyle="success" bssize="lg" block="true" type="submit">
+                <FontAwesomeIcon icon={faPowerOff} /> Delete NewsWatcher Account
               </Button>
-            </form>
+            </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseModal}><Glyphicon glyph="remove" /> Cancel</Button>
+            <Button bsstyle="danger" bssize="lg" onClick={handleCloseModal}><FontAwesomeIcon icon={faWindowClose} /> Cancel</Button>
           </Modal.Footer>
         </Modal>
       </div>
@@ -203,16 +227,9 @@ class ProfileView extends Component {
 }
 
 ProfileView.propTypes = {
+  session: PropTypes.object.isRequired,
   appLogoutCB: PropTypes.func.isRequired,
   dispatch: PropTypes.func.isRequired
 };
 
-const mapStateToProps = state => {
-  return {
-    session: state.app.session,
-    user: state.profile.user,
-    isLoading: state.profile.isLoading
-  }
-}
-
-export default connect(mapStateToProps)(ProfileView)
+export default ProfileView

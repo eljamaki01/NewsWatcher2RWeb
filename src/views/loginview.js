@@ -1,25 +1,23 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Checkbox, Button, Modal, Glyphicon } from 'react-bootstrap';
-import { connect } from 'react-redux'
+import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom"
+import { useSelector, useDispatch } from 'react-redux'
+import { Form, FormCheck, Button, Modal } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faUser, faPowerOff, faWindowClose } from '@fortawesome/free-solid-svg-icons'
 import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
-export class LoginView extends Component {
-  constructor(props) {
-    super(props);
+function LoginView() {
+  const session = useSelector((state) => state.app.session);
+  const dispatch = useDispatch();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [remeberMe, setRemeberMe] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
-    this.state = {
-      name: "",
-      email: "",
-      password: "",
-      remeberMe: false,
-      showModal: false
-    };
-  }
-
-  handleRegister = (event) => {
-    const { dispatch } = this.props
+  const handleRegister = (event) => {
     event.preventDefault();
     return fetch('/api/users', {
       method: 'POST',
@@ -28,9 +26,9 @@ export class LoginView extends Component {
       }),
       cache: 'default', // no-store or no-cache ro default?
       body: JSON.stringify({
-        displayName: this.state.name,
-        email: this.state.email,
-        password: this.state.password
+        displayName: name,
+        email: email,
+        password: password
       })
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
@@ -39,15 +37,14 @@ export class LoginView extends Component {
           throw new Error(response.json.message);
         }
         dispatch({ type: 'MSG_DISPLAY', msg: "Registered" });
-        this.setState({ showModal: false });
+        setShowModal(false);
       })
       .catch(error => {
         dispatch({ type: 'MSG_DISPLAY', msg: `Registration failure: ${error.message}` });
       });
   }
 
-  handleLogin = (event) => {
-    const { dispatch } = this.props
+  const handleLogin = (event) => {
     event.preventDefault();
     return fetch('/api/sessions', {
       method: 'POST',
@@ -56,8 +53,8 @@ export class LoginView extends Component {
       }),
       cache: 'default', // no-store or no-cache ro default?
       body: JSON.stringify({
-        email: this.state.email,
-        password: this.state.password
+        email: email,
+        password: password
       })
     })
       .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
@@ -66,7 +63,7 @@ export class LoginView extends Component {
           throw new Error(response.json.message);
         }
         // Set the token in client side storage if the user desires
-        if (this.state.remeberMe) {
+        if (remeberMe) {
           var xfer = {
             token: response.json.token,
             displayName: response.json.displayName,
@@ -77,127 +74,113 @@ export class LoginView extends Component {
           window.localStorage.removeItem("userToken");
         }
         dispatch({ type: 'RECEIVE_TOKEN_SUCCESS', msg: `Signed in as ${response.json.displayName}`, session: response.json });
-        window.location.hash = "#news";
+        navigate("/news")
       })
       .catch(error => {
         dispatch({ type: 'MSG_DISPLAY', msg: `Sign in failed: ${error.message}` });
       });
   }
 
-  handleNameChange = (event) => {
-    this.setState({ name: event.target.value });
+  const handleNameChange = (event) => {
+    setName(event.target.value);
   }
 
-  handleEmailChange = (event) => {
-    this.setState({ email: event.target.value });
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);
   }
 
-  handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value });
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
   }
 
-  handleCheckboxChange = (event) => {
-    this.setState({ remeberMe: event.target.checked });
+  const handleCheckboxChange = (event) => {
+    setRemeberMe(event.target.checked);
   }
 
-  handleOpenRegModal = (event) => {
-    this.setState({ showModal: true });
+  const handleOpenRegModal = (event) => {
+    setShowModal(true);
   }
 
-  handleCloseRegModal = (event) => {
-    this.setState({ showModal: false });
+  const handleCloseRegModal = (event) => {
+    setShowModal(false);
   }
 
-  _renderRegisterModal = () => {
-    return (<Modal show={this.state.showModal} onHide={this.handleCloseRegModal}>
+  const _renderRegisterModal = () => {
+    return (<Modal show={showModal} onHide={handleCloseRegModal}>
       <Modal.Header closeButton>
         <Modal.Title>Register</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form onSubmit={this.handleRegister}>
+        <Form onSubmit={handleRegister}>
           <FieldGroup
             id="formControlsName"
             type="text"
-            glyph="user"
+            icon={faUser}
             label="Display Name"
             placeholder="Enter display name"
-            onChange={this.handleNameChange}
+            onChange={handleNameChange}
           />
           <FieldGroup
             id="formControlsEmail"
             type="email"
-            glyph="user"
+            icon={faUser}
             label="Email Address"
             placeholder="Enter email"
-            onChange={this.handleEmailChange}
+            onChange={handleEmailChange}
           />
           <FieldGroup
             id="formControlsPassword"
-            glyph="eye-open"
+            icon={faEye}
             label="Password"
             type="password"
-            onChange={this.handlePasswordChange}
+            onChange={handlePasswordChange}
           />
-          <Button bsStyle="success" bsSize="lg" block type="submit">
-            <Glyphicon glyph="off" /> Register
+          <Button bsstyle="success" bssize="lg" block="true" type="submit">
+            <FontAwesomeIcon icon={faPowerOff} /> Register
           </Button>
-        </form>
+        </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button bsStyle="danger" bsSize="lg" onClick={this.handleCloseRegModal}><Glyphicon glyph="remove" /> Cancel</Button>
+        <Button bsstyle="danger" bssize="lg" onClick={handleCloseRegModal}><FontAwesomeIcon icon={faWindowClose} /> Cancel</Button>
       </Modal.Footer>
     </Modal>)
   }
 
-  render() {
-    // If already logged in, then don't go here and get routed to the news view
-    if (this.props.session) {
-      // return null;
-      return (
-        <h1 id="h1ExistID">Logged in...</h1>
-      );
-    }
+  // If already logged in, then don't go here and route to the news view as per code above
+  if (session) {
+    return (
+      <h1 id="h1ExistID">Logged in...</h1>
+    );
+  } else {
     return (
       <div>
-        <form onSubmit={this.handleLogin}>
+        <h1 data-testid="login_heading_id">Log in Page</h1>
+        <Form onSubmit={handleLogin}>
           <FieldGroup
             id="formControlsEmail2"
             type="email"
-            glyph="user"
+            icon={faUser}
             label="Email Address"
             placeholder="Enter email"
-            onChange={this.handleEmailChange}
+            onChange={handleEmailChange}
           />
           <FieldGroup
             id="formControlsPassword2"
-            glyph="eye-open"
+            icon={faEye}
             label="Password"
             type="password"
-            onChange={this.handlePasswordChange}
+            onChange={handlePasswordChange}
           />
-          <Checkbox id="rememberMeChk" checked={this.state.remeberMe} onChange={this.handleCheckboxChange}>
-            Keep me logged in
-          </Checkbox>
-          <Button id="btnLogin" bsStyle="success" bsSize="lg" block type="submit">
+          <FormCheck type="checkbox" label="Keep me logged in" id="rememberMeChk" checked={remeberMe} onChange={handleCheckboxChange} />
+          <Button id="btnLogin" bsstyle="success" bssize="lg" block="true" type="submit">
             Login
           </Button>
-        </form>
-        <p>Not a NewsWatcher user? <a style={{ cursor: 'pointer' }} onClick={this.handleOpenRegModal}>Sign Up</a></p>
-        {this._renderRegisterModal()}
+        </Form>
+        <p>Not a NewsWatcher user? <button style={{ cursor: 'pointer' }} onClick={handleOpenRegModal}>Sign Up</button></p>
+        {_renderRegisterModal()}
       </div>
     );
   }
 }
 
-LoginView.propTypes = {
-  dispatch: PropTypes.func.isRequired,
-  session: PropTypes.object
-};
-
-const mapStateToProps = state => {
-  return {
-    session: state.app.session
-  }
-}
-
-export default connect(mapStateToProps)(LoginView)
+export default LoginView
