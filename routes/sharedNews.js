@@ -21,8 +21,8 @@ router.post('/', authHelper.checkAuth, function (req, res, next) {
   // Validate the body
   var schema = joi.object({
     contentSnippet: joi.string().max(300).required(),
-    date: joi.date().required(),
-    hours: joi.string().max(20),
+    hours: joi.number().optional(),
+    hoursString: joi.string().max(20),
     imageUrl: joi.string().max(300).required(),
     keep: joi.boolean().required(),
     link: joi.string().max(300).required(),

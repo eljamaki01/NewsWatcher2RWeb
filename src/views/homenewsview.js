@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from 'react-bootstrap';
-import { toHours } from '../utils/utils';
 import '../App.css';
 
 
@@ -15,9 +14,6 @@ function HomeNewsView(props) {
       .then(response => {
         if (!response.ok || response.status !== 200) {
           throw new Error(response.json.message);
-        }
-        for (var i = 0; i < response.json.length; i++) {
-          response.json[i].hours = toHours(response.json[i].date);
         }
         setState({ isLoading: false, news: response.json });
         props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
@@ -62,7 +58,7 @@ function HomeNewsView(props) {
                   <Card.Body>
                     <h5 className="card-title"><b data-testid="story-name_id">{newsStory.title}</b></h5>
                     <p className="card-text">{newsStory.contentSnippet}</p>
-                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hours}</span></small></p>
+                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hoursString}</span></small></p>
                   </Card.Body>
                 </div>
               </div>

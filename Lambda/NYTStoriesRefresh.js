@@ -20,6 +20,13 @@ var globalNewsDoc;
 var globalNewsDocFetchCnt = 0;
 let cachedDb = null;
 
+function toHours(date) {
+  var d1 = new Date(date).getTime();
+  var d2 = Date.now();
+  var diff = Math.floor((d2 - d1) / 3600000);
+  return diff;
+}
+
 function connectToDatabase(uri, callback) {
   console.log('=> connect to database');
   if (cachedDb && cachedDb.db && cachedDb.collection) {
@@ -259,36 +266,47 @@ function refreshNYTStories(context, LambdaCallback) {
               console.error(e);
               return;
             }
-            let numAdded = 0;
             for (var j = 0; j < news.results.length; j++) {
-              var xferNewsStory = {
-                link: news.results[j].url,
-                title: news.results[j].title,
-                contentSnippet: news.results[j].abstract,
-                source: news.results[j].section,
-                date: new Date(news.results[j].updated_date).getTime()
-              };
-              // Only take stories with images
-              if (news.results[j].multimedia && news.results[j].multimedia.length > 0) {
-                xferNewsStory.imageUrl = news.results[j].multimedia[0].url;
+              // Only take stories with images, valid links, titles, abstract, source and time
+              const hours = news.results[j].updated_date ? toHours(news.results[j].updated_date) : 0;
+              if (news.results[j].multimedia &&
+                news.results[j].multimedia.length > 0 &&
+                news.results[j].title !== '' &&
+                news.results[j].url !== '' &&
+                news.results[j].abstract !== '' &&
+                news.results[j].section !== '' &&
+                hours <= 480) {
+                let hoursString;
+                if (hours === 0 || hours < 2) {
+                  hoursString = "1 hour ago";
+                } else {
+                  hoursString = hours + " hours ago";
+                }
+                var xferNewsStory = {
+                  imageUrl: news.results[j].multimedia[0].url,
+                  link: news.results[j].url,
+                  title: news.results[j].title,
+                  contentSnippet: news.results[j].abstract,
+                  source: news.results[j].section,
+                  hours: hours,
+                  hoursString: hoursString
+                };
                 allNews.push(xferNewsStory);
-                // Populate the home page stories
-                gStoriesDoc.homeNewsStories.push(xferNewsStory);
-                numAdded++;
-                // Only allow 15 from each, so 60 in total
-                if (numAdded >= 15)
-                  break;
+                // Populate the home page stories only with 'home' category
+                if (i === 0) {
+                  gStoriesDoc.homeNewsStories.push(xferNewsStory);
+                }
               }
             }
           }
 
+          // Stories on NYT can be shared between categories
+          // Only add the story if it is not in there already.
           async.eachSeries(allNews, function (story, innercallback) {
             bcrypt.hash(story.link, 10, function getHash(err, hash) {
               if (err) {
                 return innercallback(err);
               }
-              // Stories on NYT can be shared between categories
-              // Only add the story if it is not in there already.
               story.storyID = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
               if (gStoriesDoc.newsStories.findIndex(function (o) {
                 if (o.storyID === story.storyID || o.title === story.title)
@@ -305,6 +323,13 @@ function refreshNYTStories(context, LambdaCallback) {
               console.log('failure on story id check');
             } else {
               console.log('story id check success');
+              gStoriesDoc.homeNewsStories.sort((a, b) => {
+                return a.hours - b.hours;
+              });
+              gStoriesDoc.newsStories.sort((a, b) => {
+                return a.hours - b.hours;
+              });
+
               globalNewsDoc = gStoriesDoc;
               globalNewsDocFetchCnt = 999999;
               cachedDb.collection.findOneAndUpdate({ _id: globalNewsDoc._id }, { $set: { newsStories: globalNewsDoc.newsStories, homeNewsStories: globalNewsDoc.homeNewsStories } }, function (err, result) {

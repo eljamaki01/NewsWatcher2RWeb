@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom"
 import PropTypes from 'prop-types';
 import { FormSelect, FormGroup, Card } from 'react-bootstrap';
-import { toHours } from '../utils/utils';
 import '../App.css';
 
 function NewsView(props) {
@@ -28,11 +27,6 @@ function NewsView(props) {
       .then(response => {
         if (!response.ok || response.status !== 200) {
           throw new Error(response.json.message);
-        }
-        for (var i = 0; i < response.json.newsFilters.length; i++) {
-          for (var j = 0; j < response.json.newsFilters[i].newsStories.length; j++) {
-            response.json.newsFilters[i].newsStories[j].hours = toHours(response.json.newsFilters[i].newsStories[j].date);
-          }
         }
         setNewsState({ isLoading: false, newsFilters: response.json.newsFilters });
         dispatch({ type: 'MSG_DISPLAY', msg: "News fetched" });
@@ -116,7 +110,7 @@ function NewsView(props) {
                   <Card.Body>
                     <h5 className="card-title"><b>{newsStory.title}</b></h5>
                     <p className="card-text">{newsStory.contentSnippet}</p>
-                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hours}</span></small></p>
+                    <p className="card-text"><small className="text-muted">{newsStory.source} - <span>{newsStory.hoursString}</span></small></p>
                     <p className="card-text"><small className="text-muted"><button type="button" className="btn btn-link" onClick={(event) => handleShareStory(idx, event)}>Share</button></small></p>
                   </Card.Body>
                 </div>

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Form, FormGroup, FormLabel, Button, Modal, Card } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPowerOff, faWindowClose, faUser } from '@fortawesome/free-solid-svg-icons'
-import { FieldGroup, toHours } from '../utils/utils';
+import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
 
@@ -33,9 +33,6 @@ function SharedNewsView(props) {
       .then(response => {
         if (!response.ok || response.status !== 200) {
           throw new Error(response.json.message);
-        }
-        for (var i = 0; i < response.json.length; i++) {
-          response.json[i].story.hours = toHours(response.json[i].story.date);
         }
         setNewsState({ isLoading: false, news: response.json });
         dispatch({ type: 'MSG_DISPLAY', msg: "Shared News fetched" });
@@ -124,7 +121,7 @@ function SharedNewsView(props) {
                   <Card.Body>
                     <h5 className="card-title"><b>{sharedStory.story.title}</b></h5>
                     <p className="card-text">{sharedStory.story.contentSnippet}</p>
-                    <p className="card-text"><small className="text-muted">{sharedStory.story.source} - <span>{sharedStory.story.hours}</span></small></p>
+                    <p className="card-text"><small className="text-muted">{sharedStory.story.source} - <span>{sharedStory.story.hoursString}</span></small></p>
                     <p className="card-text"><small className="text-muted"><button type="button" className="btn btn-link" onClick={(event) => handleOpenModal(idx, event)}>Comments</button></small></p>
                   </Card.Body>
                 </div>
