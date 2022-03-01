@@ -8,7 +8,7 @@ import { FieldGroup } from '../utils/utils';
 import '../App.css';
 
 function LoginView() {
-  const session = useSelector((state) => state.app.session);
+  let session = useSelector((state) => state.app.session);
   const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

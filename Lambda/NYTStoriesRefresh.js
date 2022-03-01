@@ -70,10 +70,11 @@ function refreshStories(doc, callback) {
       for (let i = 0; i < doc.newsFilters[filterIdx].keyWords.length; i++) {
         for (var j = 0; j < globalNewsDoc.newsStories.length; j++) {
           if (globalNewsDoc.newsStories[j].keep === false) {
-            var s1 = globalNewsDoc.newsStories[j].title.toLowerCase();
-            var s2 = globalNewsDoc.newsStories[j].contentSnippet.toLowerCase();
+            var s1 = globalNewsDoc.newsStories[j].title.toLowerCase().split(/\s+|\./);
+            var s2 = globalNewsDoc.newsStories[j].contentSnippet.toLowerCase().split(/\s+|\./);
             var keyword = doc.newsFilters[filterIdx].keyWords[i].toLowerCase();
-            if (s1.indexOf(keyword) >= 0 || s2.indexOf(keyword) >= 0) {
+            const all = [...s1, ...s2];
+            if (all.includes(keyword) >= 0) {
               globalNewsDoc.newsStories[j].keep = true;
               storiesMatched++;
             }

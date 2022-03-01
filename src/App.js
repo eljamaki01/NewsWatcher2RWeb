@@ -11,9 +11,9 @@ import ProfileView from './views/profileview';
 import NotFound from './views/notfound';
 
 function App(props) {
-  const loggedIn = useSelector((state) => state.app.loggedIn);
-  const session = useSelector((state) => state.app.session);
-  const currentMsg = useSelector((state) => state.app.currentMsg);
+  let loggedIn = useSelector((state) => state.app.loggedIn);
+  let session = useSelector((state) => state.app.session);
+  let currentMsg = useSelector((state) => state.app.currentMsg);
   const dispatch = useDispatch();
 
   useEffect(() => {
