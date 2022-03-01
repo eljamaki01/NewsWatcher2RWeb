@@ -74,7 +74,7 @@ function refreshStories(doc, callback) {
             var s2 = globalNewsDoc.newsStories[j].contentSnippet.toLowerCase().split(/\s+|\./);
             var keyword = doc.newsFilters[filterIdx].keyWords[i].toLowerCase();
             const all = [...s1, ...s2];
-            if (all.includes(keyword) >= 0) {
+            if (all.includes(keyword)) {
               globalNewsDoc.newsStories[j].keep = true;
               storiesMatched++;
             }

@@ -36,7 +36,9 @@ function ProfileView(props) {
         }
         for (var i = 0; i < response.json.newsFilters.length; i++) {
           response.json.newsFilters[i].keywordsStr = response.json.newsFilters[i].keyWords.join(',');
+          response.json.newsFilters[i].newsStories = [];
         }
+        response.json.savedStories = [];
         setUser(response.json);
         dispatch({ type: 'MSG_DISPLAY', msg: "Profile fetched" });
       })

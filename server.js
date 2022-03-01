@@ -69,7 +69,7 @@ app.use(logger('dev'));
 
 // Sets up the response object in routes to contain a body property with an object of what is parsed from a JSON body request payload
 // There is no need for allowing a huge body, it might be some type of attack, so use the limit option
-// app.use(bodyParser.json({ limit: '100kb' }));
+// app.use(express.json({limit: '100kb'}));
 app.use(express.json())
 
 // app.get('/apizapiverify.txt', function (req, res) {

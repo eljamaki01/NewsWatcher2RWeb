@@ -216,7 +216,7 @@ router.put('/:id', authHelper.checkAuth, function (req, res, next) {
     settings: joi.object({
       requireWIFI: joi.boolean().strict().allow(null).required(),
       enableAlerts: joi.boolean().strict().allow(null).required(),
-    }).required(),
+    }).optional(),
     date: joi.number().optional(),
     displayName: joi.string().alphanum().min(3).max(50).optional(),
     email: joi.string().email().min(7).max(50).optional(),
