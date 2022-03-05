@@ -176,7 +176,7 @@ function SharedNewsView(props) {
 }
 
 SharedNewsView.propTypes = {
-  session: PropTypes.object.isRequired,
+  session: PropTypes.object,
   dispatch: PropTypes.func.isRequired
 };
 

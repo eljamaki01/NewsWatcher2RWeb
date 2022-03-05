@@ -1,5 +1,6 @@
 const initialState = {
   isLoading: true,
+  isSSR: false,
   news: null
 }
 

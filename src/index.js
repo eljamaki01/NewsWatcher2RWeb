@@ -16,20 +16,30 @@ let store;
 if (window.__PRELOADED_STATE__) {
   store = createStore(reducer, window.__PRELOADED_STATE__);
   delete window.__PRELOADED_STATE__
+  ReactDOM.hydrate(
+    <React.StrictMode>
+      <Provider store={store}>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </Provider>
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
 } else {
   store = createStore(reducer);
+  ReactDOM.render(
+    <React.StrictMode>
+      <Provider store={store}>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </Provider>
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
 }
 
-ReactDOM.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <HashRouter>
-        <App />
-      </HashRouter>
-    </Provider>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

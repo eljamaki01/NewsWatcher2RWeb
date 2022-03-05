@@ -229,7 +229,7 @@ function ProfileView(props) {
 }
 
 ProfileView.propTypes = {
-  session: PropTypes.object.isRequired,
+  session: PropTypes.object,
   appLogoutCB: PropTypes.func.isRequired,
   dispatch: PropTypes.func.isRequired
 };

@@ -61,25 +61,25 @@ function App(props) {
           <Nav className="ml-auto" >
             {
               <Nav.Link>
-                <NavLink exact to="/" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Home Page News</NavLink>
+                <NavLink exact="true" to="/" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Home Page News</NavLink>
                 <span className="d-lg-none"> &sdot; </span>
               </Nav.Link>
             }
             {loggedIn &&
               <Nav.Link>
-                <NavLink exact to="/news" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >My News</NavLink>
+                <NavLink exact="true" to="/news" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >My News</NavLink>
                 <span className="d-lg-none"> &sdot; </span>
               </Nav.Link>
             }
             {loggedIn &&
               <Nav.Link>
-                <NavLink exact to="/sharednews" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Shared News</NavLink>
+                <NavLink exact="true" to="/sharednews" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Shared News</NavLink>
                 <span className="d-lg-none"> &sdot; </span>
               </Nav.Link>
             }
             {loggedIn &&
               <Nav.Link>
-                <NavLink exact to="/profile" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Profile</NavLink>
+                <NavLink exact="true" to="/profile" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Profile</NavLink>
                 <span className="d-lg-none"> &sdot; </span>
               </Nav.Link>
             }
@@ -98,7 +98,7 @@ function App(props) {
       </Navbar>
       <hr />
       <Routes>
-        <Route exact path="/" element={<HomeNewsView dispatch={dispatch} />} />
+        <Route exact="true" path="/" element={<HomeNewsView dispatch={dispatch} />} />
         <Route path="/login" element={<LoginView />} />
         <Route path="/news" element={<NewsView session={session} dispatch={dispatch} />} />
         <Route path="/sharednews" element={<SharedNewsView session={session} dispatch={dispatch} />} />

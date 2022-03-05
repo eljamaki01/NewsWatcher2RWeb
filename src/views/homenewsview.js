@@ -8,7 +8,7 @@ function HomeNewsView(props) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!reduxState.news) {
+    if (!reduxState.isSSR) {
       dispatch({ type: 'REQUEST_HOMENEWS' });
       return fetch('/api/homenews', {
         method: 'GET',

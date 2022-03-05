@@ -124,7 +124,7 @@ function NewsView(props) {
 }
 
 NewsView.propTypes = {
-  session: PropTypes.object.isRequired,
+  session: PropTypes.object,
   dispatch: PropTypes.func.isRequired
 };
 

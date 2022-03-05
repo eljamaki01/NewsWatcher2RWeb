@@ -16,7 +16,7 @@ module.exports = function handleSSR(req, res, next) {
     if (err)
       return next(err);
 
-    let preloadedState = { homenews: { isLoading: false, news: doc.homeNewsStories } }
+    let preloadedState = { homenews: { isLoading: false, isSSR: true, news: doc.homeNewsStories } }
 
     // Create a new Redux store instance
     const store = createStore(reducer, preloadedState)
