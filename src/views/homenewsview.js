@@ -1,35 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux'
 import { Card } from 'react-bootstrap';
 import '../App.css';
 
-
 function HomeNewsView(props) {
-  const [state, setState] = useState({ isLoading: true, news: null });
+  let reduxState = useSelector((state) => state.homenews);
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    return fetch('/api/homenews', {
-      method: 'GET',
-      cache: 'default'
-    })
-      .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
-      .then(response => {
-        if (!response.ok || response.status !== 200) {
-          throw new Error(response.json.message);
-        }
-        setState({ isLoading: false, news: response.json });
-        props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
+    if (!reduxState.news) {
+      dispatch({ type: 'REQUEST_HOMENEWS' });
+      return fetch('/api/homenews', {
+        method: 'GET',
+        cache: 'default'
       })
-      .catch(error => {
-        props.dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${error.message}` });
-      });
+        .then(r => r.json().then(json => ({ ok: r.ok, status: r.status, json })))
+        .then(response => {
+          if (!response.ok || response.status !== 200) {
+            throw new Error(response.json.message);
+          }
+          dispatch({ type: 'RECEIVE_HOMENEWS_SUCCESS', news: response.json });
+          props.dispatch({ type: 'MSG_DISPLAY', msg: "Home Page news fetched" });
+        })
+        .catch(error => {
+          props.dispatch({ type: 'MSG_DISPLAY', msg: `Home News fetch failed: ${error.message}` });
+        });
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (state.isLoading) {
+  if (reduxState.isLoading) {
     return (<h1 data-testid="loading_id">Loading home page news...</h1>);
   } else {
     return (
       <div>
         <h1 data-testid="homepage_heading_id">Home Page News</h1>
-        <Card bg="light" key={state.news.length}>
+        <Card bg="light" key={reduxState.news.length}>
           <div className="row g-0">
             <div className="col-md-4">
               <a href="http://developer.nytimes.com" target="_blank" rel="noopener noreferrer">
@@ -46,7 +51,7 @@ function HomeNewsView(props) {
           </div>
         </Card>
         <ul>
-          {state.news.map((newsStory, idx) =>
+          {reduxState.news.map((newsStory, idx) =>
             <Card bg="light" key={idx}>
               <div className="row g-0">
                 <div className="col-md-4">

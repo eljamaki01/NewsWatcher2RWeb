@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { NavLink, HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { NavLink, Routes, Route, Navigate } from 'react-router-dom'
 import { Navbar, Nav } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux'
 import LoginView from './views/loginview';
@@ -51,64 +51,62 @@ function App(props) {
   }
 
   return (
-    <HashRouter>
-      <div>
-        <Navbar bg="light" expand="lg">
-          <Navbar.Brand href="/#">
-            NewsWatcher {currentMsg && <span><small id="currentMsgId">({currentMsg})</small></span>}
-          </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ml-auto" >
-              {
-                <Nav.Link>
-                  <NavLink exact to="/" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Home Page News</NavLink>
-                  <span className="d-lg-none"> &sdot; </span>
-                </Nav.Link>
-              }
-              {loggedIn &&
-                <Nav.Link>
-                  <NavLink exact to="/news" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >My News</NavLink>
-                  <span className="d-lg-none"> &sdot; </span>
-                </Nav.Link>
-              }
-              {loggedIn &&
-                <Nav.Link>
-                  <NavLink exact to="/sharednews" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Shared News</NavLink>
-                  <span className="d-lg-none"> &sdot; </span>
-                </Nav.Link>
-              }
-              {loggedIn &&
-                <Nav.Link>
-                  <NavLink exact to="/profile" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Profile</NavLink>
-                  <span className="d-lg-none"> &sdot; </span>
-                </Nav.Link>
-              }
-              {loggedIn &&
-                <Nav.Link>
-                  <Nav onClick={handleLogout}>Logout</Nav>
-                </Nav.Link>
-              }
-              {!loggedIn &&
-                <Nav.Link>
-                  <NavLink to="/login" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Login</NavLink>
-                </Nav.Link>
-              }
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
-        <hr />
-        <Routes>
-          <Route exact path="/" element={<HomeNewsView dispatch={dispatch} />} />
-          <Route path="/login" element={<LoginView />} />
-          <Route path="/news" element={<NewsView session={session} dispatch={dispatch} />} />
-          <Route path="/sharednews" element={<SharedNewsView session={session} dispatch={dispatch} />} />
-          <Route path="/profile" element={<ProfileView appLogoutCB={handleLogout} session={session} dispatch={dispatch} />} />
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate replace to="/404" />} />
-        </Routes>
-      </div>
-    </HashRouter>
+    <div>
+      <Navbar bg="light" expand="lg">
+        <Navbar.Brand href="/#">
+          NewsWatcher {currentMsg && <span><small id="currentMsgId">({currentMsg})</small></span>}
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="ml-auto" >
+            {
+              <Nav.Link>
+                <NavLink exact to="/" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Home Page News</NavLink>
+                <span className="d-lg-none"> &sdot; </span>
+              </Nav.Link>
+            }
+            {loggedIn &&
+              <Nav.Link>
+                <NavLink exact to="/news" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >My News</NavLink>
+                <span className="d-lg-none"> &sdot; </span>
+              </Nav.Link>
+            }
+            {loggedIn &&
+              <Nav.Link>
+                <NavLink exact to="/sharednews" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Shared News</NavLink>
+                <span className="d-lg-none"> &sdot; </span>
+              </Nav.Link>
+            }
+            {loggedIn &&
+              <Nav.Link>
+                <NavLink exact to="/profile" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Profile</NavLink>
+                <span className="d-lg-none"> &sdot; </span>
+              </Nav.Link>
+            }
+            {loggedIn &&
+              <Nav.Link>
+                <Nav onClick={handleLogout}>Logout</Nav>
+              </Nav.Link>
+            }
+            {!loggedIn &&
+              <Nav.Link>
+                <NavLink to="/login" style={({ isActive }) => ({ color: isActive ? 'green' : 'blue' })} >Login</NavLink>
+              </Nav.Link>
+            }
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+      <hr />
+      <Routes>
+        <Route exact path="/" element={<HomeNewsView dispatch={dispatch} />} />
+        <Route path="/login" element={<LoginView />} />
+        <Route path="/news" element={<NewsView session={session} dispatch={dispatch} />} />
+        <Route path="/sharednews" element={<SharedNewsView session={session} dispatch={dispatch} />} />
+        <Route path="/profile" element={<ProfileView appLogoutCB={handleLogout} session={session} dispatch={dispatch} />} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate replace to="/404" />} />
+      </Routes>
+    </div>
   );
 }
 

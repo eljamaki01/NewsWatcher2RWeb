@@ -3,6 +3,16 @@
 //
 
 // "require" statements to bring in needed Node Modules
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+if (process.env.USE_SSR === 'TRUE') {
+  require('ignore-styles')
+  require("@babel/register")({
+    ignore: [/(node_module|build|Lambda)/],
+    presets: ["@babel/preset-env", "@babel/preset-react"],
+  });
+}
 // require('newrelic');
 var express = require('express'); // For route handlers and templates to serve up.
 var path = require('path'); // Populating the path property of the request
@@ -11,11 +21,6 @@ var responseTime = require('response-time'); // For code timing checks for perfo
 var helmet = require('helmet'); // Helmet module for HTTP header hack mitigations
 var rateLimit = require('express-rate-limit'); // IP based rate limiter
 const compression = require('compression');
-
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
-
 var users = require('./routes/users');
 var session = require('./routes/session');
 var sharedNews = require('./routes/sharedNews');
@@ -30,8 +35,8 @@ const limiter = rateLimit({
   max: 2000, // limit each IP address per window
   delayMs: 0, // disable delaying - full speed until the max limit is reached 
   message: { message: 'You have exceeded the request limit!' },
-	standardHeaders: false, // Disable return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: false, // Disable return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: (req) => {
     // Return true to skip the rate limit testing, or false to proceed with limiting
     // We are using the ApiZapi.com load testing tool to test NewsWatcher and do not want to be rate limited for all our own calls
@@ -53,7 +58,7 @@ app.use(
         "script-src": ["'self'", "'unsafe-inline'", 'ajax.googleapis.com', 'maxcdn.bootstrapcdn.com'],
         "style-src": ["'self'", "'unsafe-inline'", 'maxcdn.bootstrapcdn.com'],
         "font-src": ["'self'", 'maxcdn.bootstrapcdn.com'],
-        "img-src": ["'self'",  'https://static01.nyt.com/', 'data:']
+        "img-src": ["'self'", 'https://static01.nyt.com/', 'data:']
         // reportUri: '/report-violation',
       },
     },
@@ -76,13 +81,6 @@ app.use(express.json())
 //   res.sendFile(path.join(__dirname, 'apizapiverify.txt'));
 // });
 
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-// Simplifies the serving up of static content such as HTML for the React SPA, images, CSS files, and JavaScript files
-app.use(express.static(path.join(__dirname, 'build')));
-
 //
 // MongoDB database connection initialization
 //
@@ -102,6 +100,25 @@ MongoClient.connect(process.env.MONGODB_CONNECT_URL, { useNewUrlParser: true, us
   }
 });
 
+// Set the database connection for middleware usage
+app.use(function (req, res, next) {
+  req.db = db;
+  next();
+});
+
+if (process.env.USE_SSR === 'TRUE') {
+  const SSRRender = require('./ssrRender');
+  app.use("^/$", SSRRender);
+  app.use(express.static(path.join(__dirname, 'build')));
+} else {
+  app.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  });
+
+  // Simplifies the serving up of static content such as HTML for the React SPA, images, CSS files, and JavaScript files
+  app.use(express.static(path.join(__dirname, 'build')));
+}
+
 // If our process is shut down, close out the database connections gracefully
 process.on('SIGINT', function () {
   console.log('MongoDB connection close on app termination');
@@ -113,12 +130,6 @@ process.on('SIGUSR2', function () {
   console.log('MongoDB connection close on app restart');
   db.client.close();
   process.kill(process.pid, 'SIGUSR2');
-});
-
-// Set the database connection for middleware usage
-app.use(function (req, res, next) {
-  req.db = db;
-  next();
 });
 
 //

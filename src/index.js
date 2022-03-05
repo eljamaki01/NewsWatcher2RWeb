@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { HashRouter } from 'react-router-dom'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import reducer from './reducers'
@@ -8,12 +9,23 @@ import App from './App';
 import 'bootstrap/dist/css/bootstrap.css';
 // import reportWebVitals from './reportWebVitals';
 
-const store = createStore(reducer);
+
+// Grab the state from a global variable injected into the server-generated HTML
+// if (window.__PRELOADED_STATE__) {
+let store;
+if (window.__PRELOADED_STATE__) {
+  store = createStore(reducer, window.__PRELOADED_STATE__);
+  delete window.__PRELOADED_STATE__
+} else {
+  store = createStore(reducer);
+}
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <HashRouter>
+        <App />
+      </HashRouter>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')
