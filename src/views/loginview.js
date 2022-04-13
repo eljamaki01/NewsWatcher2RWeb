@@ -19,7 +19,7 @@ function LoginView() {
 
   const handleRegister = (event) => {
     event.preventDefault();
-    return fetch('/api/users', {
+    fetch('/api/users', {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json'
@@ -46,7 +46,7 @@ function LoginView() {
 
   const handleLogin = (event) => {
     event.preventDefault();
-    return fetch('/api/sessions', {
+    fetch('/api/sessions', {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json'

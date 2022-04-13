@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
@@ -13,10 +13,12 @@ import 'bootstrap/dist/css/bootstrap.css';
 // Grab the state from a global variable injected into the server-generated HTML
 // if (window.__PRELOADED_STATE__) {
 let store;
+let root;
 if (window.__PRELOADED_STATE__) {
   store = createStore(reducer, window.__PRELOADED_STATE__);
   delete window.__PRELOADED_STATE__
-  ReactDOM.hydrate(
+  root = ReactDOM.hydrateRoot(document.getElementById('root'));
+  root.hydrate(
     <React.StrictMode>
       <Provider store={store}>
         <HashRouter>
@@ -28,7 +30,8 @@ if (window.__PRELOADED_STATE__) {
   );
 } else {
   store = createStore(reducer);
-  ReactDOM.render(
+  root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(
     <React.StrictMode>
       <Provider store={store}>
         <HashRouter>

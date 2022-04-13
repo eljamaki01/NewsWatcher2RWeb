@@ -10,7 +10,7 @@ function HomeNewsView(props) {
   useEffect(() => {
     if (!reduxState.isSSR) {
       dispatch({ type: 'REQUEST_HOMENEWS' });
-      return fetch('/api/homenews', {
+      fetch('/api/homenews', {
         method: 'GET',
         cache: 'default'
       })
