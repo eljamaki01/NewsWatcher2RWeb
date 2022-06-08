@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/extend-expect'
 import { createStore } from 'redux';
+import { Provider } from 'react-redux'
 import reducer from '../reducers';
 import HomeNewsView from './homenewsview';
 
@@ -26,7 +27,12 @@ describe('<HomeNewsView /> (render with mocked data)', () => {
     })
 
     const store = createStore(reducer)
-    render(<HomeNewsView dispatch={store.dispatch} />);
+    render();
+    render(
+      <Provider store={store}>
+        <HomeNewsView dispatch={store.dispatch} />
+      </Provider>
+    );
     // await waitFor(() => screen.getByTestId('homepage_heading_id'));
     // await screen.findByTestId('homepage_heading_id');
     expect(await screen.findByTestId('homepage_heading_id')).toBeInTheDocument();
@@ -55,9 +61,13 @@ describe('<HomeNewsView /> (render with mocked data)', () => {
     })
 
     const store = createStore(reducer)
-    render(<HomeNewsView dispatch={store.dispatch} />);
+    render(
+      <Provider store={store}>
+        <HomeNewsView dispatch={store.dispatch} />
+      </Provider>
+    );
     expect(await screen.findByTestId('loading_id')).toBeInTheDocument();
     expect(screen.getByText('Loading home page news...')).toBeInTheDocument();
-    expect(store.getState().app.currentMsg).toEqual('Home News fetch failed: Error: This is bad');
+    await waitFor(() => expect(store.getState().app.currentMsg).toEqual('Home News fetch failed: Error: This is bad'))
   });
 });

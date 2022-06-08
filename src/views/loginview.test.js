@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/extend-expect'
 import { createStore } from 'redux';
 import { Provider } from 'react-redux'
@@ -84,7 +84,9 @@ describe('<LoginView /> (render with mocked data)', () => {
     expect(await screen.findByTestId('login_heading_id')).toBeInTheDocument();
 
     expect(window.fetch).toHaveBeenCalledTimes(1);
-    expect(store.getState().app.currentMsg).toEqual('Sign in failed: Error: User was not found.');
+    // Had to replace the folowing line as the async update of redux was not done and there was no UI element to wait to appear
+    // expect(store.getState().app.currentMsg).toEqual('Sign in failed: Error: User was not found.');
+    await waitFor(() => expect(store.getState().app.currentMsg).toEqual('Sign in failed: Error: User was not found.'))
     expect(store.getState().app.session).toEqual(null);
   });
 });
