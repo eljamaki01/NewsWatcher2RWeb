@@ -12,8 +12,8 @@
     "zipLambda": "zip -r lambda.zip NYTStoriesRefresh.js package.json node_modules"
   },
   "dependencies": {
-    "async": "^3.2.3",
+    "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
-    "mongodb": "^4.5.0"
+    "mongodb": "^4.7.0"
   }
 }
