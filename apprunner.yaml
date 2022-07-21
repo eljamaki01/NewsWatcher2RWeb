@@ -1,0 +1,9 @@
+version: 0.1
+runtime: nodejs14
+build:
+  commands:
+    build:
+      - npm install --production
+      - npm run build-react
+run:
+  command: node server.js
